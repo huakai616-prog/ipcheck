@@ -634,16 +634,17 @@ function diagnoseChange(history, ip, verdict, dcNow, sources) {
   }
   const levelChanged = prev.level !== level;
   const dcChanged = typeof prev.is_datacenter === "boolean" && dcNow !== null && prev.is_datacenter !== dcNow;
-  if (!levelChanged && !dcChanged) return { changed: false, prev_time: prev.time };
+  if (!levelChanged && !dcChanged) return { changed: false, prev_time: prev.time, prev_ip: prev.ip, cur_ip: ip, same_ip: prev.ip === ip };
 
   const prevRank = LEVEL_RANK[prev.level] ?? 0, curRank = LEVEL_RANK[level] ?? 0;
   let badge, title, text;
   if (prev.ip !== ip) {
-    badge = "warn";
+    // 手机上切节点很常见，不能默认当成节点自己漂移
+    badge = "info";
     title = "出口 IP 换了，不是数据库的问题";
-    text = `上次检测出口 IP 是 ${prev.ip || "—"}，这次变成了 ${ip}——说明节点在你没手动操作的情况下自己换了后端服务器。`
-      + "常见原因是该节点在客户端里是「自动测速 / 策略组」模式，或者订阅本身把住宅 IP 和数据中心 IP 混在一起随机分配。"
-      + "解决办法：把该节点固定为单一服务器，不要用自动选优。";
+    text = `上次检测出口 IP 是 ${prev.ip || "—"}，这次是 ${ip}。如果你刚手动切换过节点，这是正常的，结论以本次为准。`
+      + "如果没切换过，说明节点自己换了后端服务器，常见原因是客户端里用的是「自动测速 / 策略组」，"
+      + "或者订阅把住宅 IP 和机房 IP 混在一起分配；想固定出口，就选定单一节点，不用自动选优。";
   } else {
     badge = curRank > prevRank ? "bad" : curRank < prevRank ? "ok" : "info";
     title = "出口 IP 没变，是风控数据库重新分类了";
@@ -670,7 +671,14 @@ function renderDiagnosis(diag) {
   }
   if (diag.skipped) return `<div class="diag-box diag-info"><div class="diag-body">${esc(diag.reason)}</div></div>`;
   if (!diag.changed) {
-    return `<div class="diag-box diag-info"><div class="diag-body">与上次检测（${esc(diag.prev_time || "—")}）相比，判定结果一致，未发现变化。</div></div>`;
+    const when = esc(diag.prev_time || "—");
+    if (!diag.same_ip) {
+      return `<div class="diag-box diag-info"><div class="diag-body">与上次检测（${when}）相比，出口 IP 从 ${esc(diag.prev_ip || "—")} `
+        + `换成了 ${esc(diag.cur_ip)}，判定结果一致。</div></div>`;
+    }
+    return `<div class="diag-box diag-info"><div class="diag-body">与上次检测（${when}）相比，出口 IP 和判定结果都没变。</div>`
+      + '<div class="diag-meta">如果你刚切换过节点：同一订阅的多个节点常常共用同一个出口，结果不变是正常的。'
+      + "想确认，换一个不同地区或机房的节点再测；如果那样出口还是没变，把本页从后台划掉重开再测（旧连接可能还走原来的节点）。</div></div>";
   }
   return `<div class="diag-box diag-${diag.badge}"><div class="diag-title">${esc(diag.title)}</div>`
     + `<div class="diag-body">${esc(diag.text)}</div>`
