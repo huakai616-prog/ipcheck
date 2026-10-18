@@ -66,18 +66,19 @@ body {
 a { color: var(--blue-ink); }
 .mono, .hero-ip, .rt-ip { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace; }
 
-/* ─── 背景：几团模糊的色块，给毛玻璃透出颜色 ─── */
-.bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.bg i { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(64px); opacity: .9;
-  transition: background-color 1.2s ease; }
+/* ─── 背景：几团柔边色块，给毛玻璃透出颜色 ───
+   用径向渐变画柔边，不用 filter: blur：大面积模糊滤镜在 iPhone 上滚动时很吃 GPU */
+.bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; transform: translateZ(0); }
+.bg i { position: absolute; width: 100vmax; height: 100vmax; opacity: .9;
+  background: radial-gradient(closest-side, currentColor 38%, transparent); transition: color 1.2s ease; }
 @media (prefers-color-scheme: dark) { .bg i { opacity: .6; } }
-.bg i:nth-child(1) { background: var(--b1); top: -18vmax; left: -28vmax; }
-.bg i:nth-child(2) { background: var(--b2); top: 8vh; right: -34vmax; }
-.bg i:nth-child(3) { background: var(--b3); bottom: -24vmax; left: -20vmax; }
-.bg i:nth-child(4) { background: var(--b4); top: 52vh; right: -22vmax; width: 52vmax; height: 52vmax; }
+.bg i:nth-child(1) { color: var(--b1); top: -33vmax; left: -43vmax; }
+.bg i:nth-child(2) { color: var(--b2); top: calc(8vh - 15vmax); right: -49vmax; }
+.bg i:nth-child(3) { color: var(--b3); bottom: -39vmax; left: -35vmax; }
+.bg i:nth-child(4) { color: var(--b4); top: calc(52vh - 16vmax); right: -38vmax; width: 84vmax; height: 84vmax; }
 
-/* ─── 毛玻璃卡片 ─── */
-.hero, .progress, .fatal, .rt-list, .rg-grid, .sum-col, .src-card, .ex-list, .diag-box, details.settings, #report details {
+/* ─── 毛玻璃卡片：只给顶层几块，折叠区里面的内容用普通浅底 ─── */
+.hero, .progress, .fatal, .rt-list, .diag-box, details.settings, details.more {
   background: var(--glass);
   -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   border: 1px solid var(--edge); border-radius: 22px;
@@ -88,7 +89,7 @@ a { color: var(--blue-ink); }
   @media (prefers-color-scheme: dark) { :root { --glass: rgba(34,36,46,.94); } }
 }
 /* iOS 风格的内缩分隔线 */
-.rt-row + .rt-row, .ex-row, .sum-row + .sum-row {
+.rt-row + .rt-row, .ex-row {
   background-image: linear-gradient(var(--sep), var(--sep));
   background-size: calc(100% - 18px) 1px; background-position: right top; background-repeat: no-repeat;
 }
@@ -140,7 +141,6 @@ a { color: var(--blue-ink); }
 .hero-score.v-ok { color: var(--green-ink); } .hero-score.v-warn { color: var(--orange-ink); }
 .hero-score.v-bad { color: var(--red-ink); } .hero-score.v-unk { color: var(--gray-ink); }
 .ring-cap { font-size: 10px; color: var(--label3); margin-top: 3px; }
-.hero-score-label { font-size: 11px; color: var(--label3); }
 .hero-verdict {
   margin-top: 18px; padding: 13px 16px; border-radius: 16px;
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -160,20 +160,43 @@ a { color: var(--blue-ink); }
 .hm-k { font-size: 12px; color: var(--label2); }
 .hm-v { font-size: 15px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
 
+/* 可信度：用中性的蓝色圆点，不用红绿，免得和结论颜色打架 */
+.conf { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: var(--label2); }
+.conf-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--blue-ink);
+  background: var(--blue-tint); padding: 3px 11px 3px 9px; border-radius: 999px; }
+.conf-dots { letter-spacing: 1px; font-size: 9px; }
+.conf-dots .off { opacity: .28; }
+
+/* ─── 评分依据（主卡片里展开）─── */
+details.why { margin-top: 16px; border-top: 1px solid var(--sep); }
+details.why > summary { padding: 13px 2px 0; font-size: 15px; }
+details.why > summary .sum-hint { font-size: 12px; font-weight: 400; color: var(--label3); margin-left: auto; margin-right: 8px; }
+.why-body { padding: 10px 0 0; }
+.why-formula { font-size: 12px; color: var(--label2); line-height: 1.7; background: var(--tile); border-radius: 14px; padding: 10px 13px; }
+.bd-list { margin-top: 6px; }
+.bd-row { display: grid; grid-template-columns: 1fr auto; gap: 1px 12px; padding: 10px 2px; align-items: baseline; }
+.bd-row + .bd-row { border-top: 1px solid var(--sep); }
+.bd-k { font-size: 14px; font-weight: 600; }
+.bd-tag { display: inline-block; font-size: 12px; font-weight: 700; margin-left: 6px; padding: 0 8px; border-radius: 999px; line-height: 20px; }
+.t-ok { color: var(--green-ink); background: var(--green-tint); } .t-bad { color: var(--red-ink); background: var(--red-tint); }
+.t-warn { color: var(--orange-ink); background: var(--orange-tint); } .t-info { color: var(--blue-ink); background: var(--blue-tint); }
+.t-unk { color: var(--gray-ink); background: var(--gray-tint); }
+.bd-pts { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.bd-pts.zero { color: var(--label3); font-weight: 500; }
+.bd-sub { grid-column: 1 / -1; font-size: 12px; color: var(--label3); overflow-wrap: anywhere; }
+.bd-total { border-top: 1.5px solid var(--label3) !important; }
+.bd-total .bd-k, .bd-total .bd-pts { font-size: 15px; }
+.why-h { font-size: 13px; font-weight: 700; color: var(--label2); margin: 14px 2px 4px; }
+.src-agree { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.src-agree li { display: flex; gap: 8px; padding: 5px 2px; }
+.src-agree .sa-mark { flex: none; width: 16px; text-align: center; font-weight: 700; }
+.src-agree .sa-ok { color: var(--green-ink); } .src-agree .sa-no { color: var(--orange-ink); } .src-agree .sa-fail { color: var(--red-ink); }
+.src-agree .sa-name { flex: none; font-weight: 600; min-width: 76px; }
+.src-agree .sa-txt { color: var(--label2); overflow-wrap: anywhere; }
+
 /* ─── 区段标题 ─── */
 .section-title { font-size: 21px; font-weight: 700; margin: 30px 6px 10px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .section-title .st-hint { font-size: 13px; font-weight: 400; color: var(--label3); text-align: right; }
-
-/* ─── 风险格 ─── */
-.rg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px; }
-.rg-cell { background: var(--tile); border-radius: 16px; padding: 14px 15px; }
-.rg-cell-wide { grid-column: span 2; }
-.rg-label { font-size: 13px; color: var(--label2); }
-.rg-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
-.rg-ok { color: var(--green-ink); } .rg-bad { color: var(--red-ink); } .rg-warn { color: var(--orange-ink); }
-.rg-unk { color: var(--gray-ink); } .rg-info { color: var(--blue-ink); }
-.rg-hint { font-size: 12px; color: var(--label3); margin-top: 2px; }
-.rg-votes { font-size: 11px; color: var(--label3); margin-top: 2px; overflow-wrap: anywhere; }
 
 /* ─── 分流出口 ─── */
 .rt-list { overflow: hidden; }
@@ -185,10 +208,13 @@ a { color: var(--blue-ink); }
 .rt-verdict b { font-size: 15px; }
 .rt-verdict.v-ok { color: var(--green-ink); } .rt-verdict.v-warn { color: var(--orange-ink); }
 .rt-verdict.v-bad { color: var(--red-ink); } .rt-verdict.v-unk { color: var(--gray-ink); }
-.rt-note { font-size: 12px; color: var(--label3); margin: 8px 6px 0; }
+.rt-same { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 15px; }
+.rt-same .rt-name { flex: none; }
+.rt-same-txt { color: var(--label2); }
 
 /* ─── 历史对比 ─── */
-.diag-box { padding: 16px 18px; }
+.diag-box { padding: 16px 18px; margin-top: 12px; }
+.diag-flat { background: var(--tile); border-radius: 16px; padding: 13px 15px; }
 .diag-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
 .diag-title::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
 .diag-body { font-size: 14px; line-height: 1.7; color: var(--label); }
@@ -196,16 +222,8 @@ a { color: var(--blue-ink); }
 .diag-ok .diag-title { color: var(--green-ink); } .diag-warn .diag-title { color: var(--orange-ink); }
 .diag-bad .diag-title { color: var(--red-ink); } .diag-info .diag-title { color: var(--blue-ink); }
 
-/* ─── 综合摘要 ─── */
-.sum-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.sum-col { padding: 16px 0 8px; }
-.sum-title { font-size: 15px; font-weight: 700; padding: 0 18px 8px; }
-.sum-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 18px; font-size: 14px; }
-.sum-k { color: var(--label2); white-space: nowrap; }
-.sum-v { font-weight: 600; text-align: right; overflow-wrap: anywhere; }
-
-/* ─── 数据源卡片 ─── */
-.src-card { margin-bottom: 12px; overflow: hidden; }
+/* ─── 数据源卡片（在「详细数据」里）─── */
+.src-card { margin-bottom: 10px; overflow: hidden; background: var(--tile); border-radius: 16px; }
 .src-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--sep); }
 .src-title { font-size: 17px; font-weight: 700; }
 .src-sub { font-size: 12px; color: var(--label3); }
@@ -225,7 +243,7 @@ a { color: var(--blue-ink); }
 .src-err { padding: 16px 18px; color: var(--red-ink); font-size: 13px; }
 
 /* ─── 外部网站 ─── */
-.ex-list { display: grid; grid-template-columns: repeat(2, 1fr); overflow: hidden; }
+.ex-list { display: grid; grid-template-columns: repeat(2, 1fr); overflow: hidden; background: var(--tile); border-radius: 16px; }
 .ex-row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; text-decoration: none; color: var(--label); }
 .ex-row:nth-child(-n+2) { background-image: none; }
 .ex-row:active { background-color: var(--tile); }
@@ -233,14 +251,22 @@ a { color: var(--blue-ink); }
 .ex-desc { font-size: 12px; color: var(--label2); flex: 1; }
 .ex-arrow { color: var(--label3); font-size: 22px; line-height: 1; }
 
-/* ─── 折叠区：原始数据 / 设置 ─── */
-details { margin-top: 18px; }
+/* ─── 折叠区：评分依据 / 详细数据 / 设置 ─── */
+details.more, details.settings { margin-top: 18px; }
 details summary { list-style: none; cursor: pointer; padding: 15px 18px; font-size: 15px; font-weight: 600;
   display: flex; align-items: center; justify-content: space-between; }
 details summary::-webkit-details-marker { display: none; }
 details summary::after { content: "›"; font-size: 22px; line-height: 1; color: var(--label3); transition: transform .2s ease; }
-details[open] summary::after { transform: rotate(90deg); }
-#report details pre { margin: 0; padding: 0 18px 18px; font-size: 11px; overflow: auto; max-height: 480px;
+details[open] > summary::after { transform: rotate(90deg); }
+details.more > summary .sum-hint { font-size: 12px; font-weight: 400; color: var(--label3); margin-left: auto; margin-right: 10px; text-align: right; }
+.more-body { padding: 0 12px 14px; }
+.more-h { font-size: 13px; font-weight: 700; color: var(--label2); margin: 14px 6px 8px; }
+.more-body > .more-h:first-child { margin-top: 2px; }
+.more-h .st-hint { font-weight: 400; color: var(--label3); }
+.more-note { font-size: 12px; color: var(--label3); margin: 0 6px 10px; line-height: 1.7; }
+details.raw { background: var(--tile); border-radius: 16px; margin-top: 10px; }
+details.raw > summary { padding: 12px 15px; font-size: 14px; }
+details.raw pre { margin: 0; padding: 0 15px 15px; font-size: 11px; overflow: auto; max-height: 480px;
   font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--label2); }
 .settings-body { padding: 0 18px 18px; }
 .set-label { font-size: 13px; font-weight: 600; color: var(--label2); }
@@ -276,9 +302,10 @@ details[open] summary::after { transform: rotate(90deg); }
   .v-sentence { flex-basis: 100%; }
   .hero-meta { grid-template-columns: 1fr 1fr; }
   .section-title { flex-wrap: wrap; font-size: 20px; }
-  .rg-grid { grid-template-columns: repeat(2, 1fr); }
   .rt-row { grid-template-columns: 1fr; gap: 6px; }
-  .sum-grid { grid-template-columns: 1fr; }
+  .rt-same { flex-wrap: wrap; row-gap: 2px; }
+  .more-body { padding: 0 8px 10px; }
+  details.more > summary .sum-hint { display: none; }
   .ex-list { grid-template-columns: 1fr; }
   .ex-row:nth-child(2) { background-image: linear-gradient(var(--sep), var(--sep)); }
   .ex-name { min-width: 100px; }
@@ -342,9 +369,11 @@ const KEY_ZH = Object.assign({}, T.KEY_ZH, {
   languages: "语言", asnOrganization: "ASN 名称", isProxy: "是否代理 / VPN",
   // ipquery
   localtime: "当地时间",
+  // blackbox（本页自己整理的字段）
+  listed: "在代理 / VPN / 机房名单上",
 });
 const { NET_TYPE_ZH, COUNTRY_ZH, RISK_LEVEL_ZH, USAGE_TYPE_ZH, CONTINENT_ZH, ANTIBOT_SITES, DIMENSIONS } = T;
-const RISK_FIELDS = new Set([...T.RISK_FIELDS, "isProxy"]);
+const RISK_FIELDS = new Set([...T.RISK_FIELDS, "isProxy", "listed"]);
 const KEY_ONLY_DIMS = new Set(["crawler"]);
 
 const TIMEOUT = 8000;        // 单个请求时限，毫秒
@@ -483,12 +512,21 @@ const SOURCES = [
     }) },
   { key: "ipquery", zh: "风险标记", link: "https://api.ipquery.io/{ip}?format=json",
     fn: ip => getJSON(`https://api.ipquery.io/${ip}?format=json`).then(d => check(d, "risk")) },
-  { key: "freeipapi", zh: "代理标记", link: "https://free.freeipapi.com/api/json/{ip}",
-    fn: ip => getJSON(`https://free.freeipapi.com/api/json/${ip}`).then(d => {
+  // 旧地址 /api/json/ 现在会 307 跳到 /api/v1/json/，直接用新地址省一次跳转
+  { key: "freeipapi", zh: "代理标记", link: "https://free.freeipapi.com/api/v1/json/{ip}",
+    fn: ip => getJSON(`https://free.freeipapi.com/api/v1/json/${ip}`).then(d => {
       check(d);
       if (typeof d.isProxy !== "boolean") throw new Error("返回里没有 isProxy 字段（可能被限流或改了免费政策）");
       delete d.timeZones; // 整个国家的时区列表，太长且与判定无关
       return d;
+    }) },
+  // 免 key、允许跨域，只回一个字母：Y = 在代理 / VPN / 机房名单上，N = 不在。
+  // 实测运营商 IP 回 N，机房、公共 DNS、Tor 出口回 Y，名单主要按机房 IP 段收录，所以归入「数据中心」投票
+  { key: "blackbox", zh: "机房名单", link: "https://blackbox.ipinfo.app/lookup/{ip}",
+    fn: ip => fetchText(`https://blackbox.ipinfo.app/lookup/${ip}`).then(t => {
+      const v = t.trim().toUpperCase();
+      if (v !== "Y" && v !== "N") throw new Error("返回格式异常");
+      return { ip, listed: v === "Y" };
     }) },
   { key: "ipapi.is", zh: "综合风控", link: "https://api.ipapi.is/?q={ip}",
     fn: ip => {
@@ -498,9 +536,11 @@ const SOURCES = [
     } },
 ];
 // 参与风险判定（投票或给风险分）的数据源；查询失败时在结论里注明
-const RISK_SOURCES = ["iplocate", "ipquery", "freeipapi", "ipapi.is"];
+const RISK_SOURCES = ["iplocate", "ipquery", "freeipapi", "blackbox", "ipapi.is"];
 /** 实际参与判定的数据源：ipapi.is 没有 key 时不返回风控字段，不算。 */
 const voteSources = () => RISK_SOURCES.filter(k => k !== "ipapi.is" || ipapiKey());
+/** 本次要查的数据源：ipapi.is 没有 key 时只给归属信息，判定用不上，干脆不查。 */
+const activeSources = () => SOURCES.filter(s => s.key !== "ipapi.is" || ipapiKey());
 const SOURCE_BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
 
 // ───────── 结果缓存 ─────────
@@ -522,37 +562,42 @@ async function cachedFetch(key, ip, force) {
   return data;
 }
 
-/** 获取默认出口 IP，并发查询全部数据源，同时探测各服务的分流出口。 */
+/** 获取默认出口 IP，并发查询全部数据源，同时探测各服务的分流出口。
+ *  分流出口和默认出口同时开测，不必等默认 IP 拿到再开始，少等一轮请求。 */
 async function runAll(log, force) {
-  log("正在获取出口 IP（换新连接）");
-  const { ip, fresh } = await detectEgress();
-  log(`出口 IP：${ip}${fresh ? "" : "（可能沿用了旧连接）"}`, "ok");
+  log(`正在获取默认出口和 ${ROUTE_PROBES.length} 个服务的分流出口（换新连接）`);
   const results = {}, routes = {}, extra = {};
-  const stale = fresh ? [] : ["默认线路"]; // 没能换新连接取出口的线路
-  const todo = SOURCES;
-  log(`正在并发查询 ${todo.length} 个数据源${force ? "（不用缓存）" : ""}，并检测 ${ROUTE_PROBES.length} 个服务的分流出口`);
+  const staleRoutes = new Set(); // 没能换新连接取出口的分流线路
+  const egress = detectEgress();
+  egress.catch(() => { /* 失败由下面的 await 抛出 */ });
 
+  const routeJobs = ROUTE_PROBES.map(([name, pool]) => traceFresh(pool).then(async ({ ip: rip, fresh: rf }) => {
+    routes[name] = rip;
+    if (!rf) staleRoutes.add(name);
+    let ip;
+    try { ({ ip } = await egress); } catch (e) { return; } // 默认出口都拿不到，整次检测会报错，这里不用管
+    log(`✓ ${name} 看到的 IP：${rip}${rip === ip ? "（同默认线路）" : ""}`, "ok");
+    if (rip === ip || rip in extra) return;
+    extra[rip] = {};
+    await Promise.all(voteSources().map(k => cachedFetch(k, rip, force).then(
+      v => { extra[rip][k] = v; }, e => { extra[rip][k] = e; })));
+  }, e => { routes[name] = e; log(`× ${name} 线路出口检测失败`, "bad"); }));
+
+  const { ip, fresh } = await egress;
+  log(`出口 IP：${ip}${fresh ? "" : "（可能沿用了旧连接）"}`, "ok");
+  const todo = activeSources();
+  log(`正在并发查询 ${todo.length} 个数据源${force ? "（不用缓存）" : ""}`);
   const jobs = todo.map(s => cachedFetch(s.key, ip, force).then(
     v => { results[s.key] = v; log(`✓ ${s.zh}（${s.key}）`, "ok"); },
     e => { results[s.key] = e; log(`× ${s.zh}（${s.key}）失败：${e.message}`, "bad"); }));
-  for (const [name, pool] of ROUTE_PROBES) {
-    jobs.push(traceFresh(pool).then(async ({ ip: rip, fresh: rf }) => {
-      routes[name] = rip;
-      if (!rf) stale.push(name);
-      log(`✓ ${name} 看到的 IP：${rip}${rip === ip ? "（同默认线路）" : ""}`, "ok");
-      if (rip === ip || rip in extra) return;
-      extra[rip] = {};
-      await Promise.all(voteSources().map(k => cachedFetch(k, rip, force).then(
-        v => { extra[rip][k] = v; }, e => { extra[rip][k] = e; })));
-    }, e => { routes[name] = e; log(`× ${name} 线路出口检测失败`, "bad"); }));
-  }
-  await Promise.race([Promise.allSettled(jobs), sleep(RUN_DEADLINE)]);
+  await Promise.race([Promise.allSettled([...jobs, ...routeJobs]), sleep(RUN_DEADLINE)]);
 
   // 到总时限还没返回的一律记为超时，不再等
   const late = () => new Error(`超过 ${RUN_DEADLINE / 1000} 秒未返回`);
   for (const s of todo) if (!(s.key in results)) results[s.key] = late();
   for (const [name] of ROUTE_PROBES) if (!(name in routes)) routes[name] = late();
   for (const rip of Object.keys(extra)) for (const k of voteSources()) if (!(k in extra[rip])) extra[rip][k] = late();
+  const stale = [...(fresh ? [] : ["默认线路"]), ...ROUTE_PROBES.map(([n]) => n).filter(n => staleRoutes.has(n))];
   return { ip, results, routes, extra, stale };
 }
 
@@ -616,8 +661,9 @@ function collectEvidence(src) {
     vpn: [["ipapi.is", yn(g(ipapi, "is_vpn"))], ["iplocate", yn(g(priv, "is_vpn"))], ["ipquery", yn(g(risk, "is_vpn"))]],
     proxy: [["ipapi.is", yn(g(ipapi, "is_proxy"))], ["iplocate", yn(g(priv, "is_proxy"))], ["ipquery", yn(g(risk, "is_proxy"))]],
     anon: [["freeipapi", yn(g(fip, "isProxy"))], ["iplocate", yn(g(priv, "is_anonymous"))]],
+    // blackbox 是手机版独有的数据源（桌面版没有）；名单主要按机房 IP 段收录，算作「数据中心」的一票
     datacenter: [["ipapi.is", yn(g(ipapi, "is_datacenter"))], ["iplocate", yn(g(priv, "is_hosting"))],
-                 ["ipquery", yn(g(risk, "is_datacenter"))]],
+                 ["ipquery", yn(g(risk, "is_datacenter"))], ["blackbox", yn(g(src.blackbox, "listed"))]],
     tor: [["ipapi.is", yn(g(ipapi, "is_tor"))], ["iplocate", yn(g(priv, "is_tor"))], ["ipquery", yn(g(risk, "is_tor"))]],
     abuser: [["ipapi.is", yn(g(ipapi, "is_abuser"))], ["iplocate", yn(g(priv, "is_abuser"))]],
     crawler: [["ipapi.is", yn(g(ipapi, "is_crawler"))]],
@@ -641,9 +687,6 @@ function dimState(votes) {
   if (yes === 0) return "no";
   return yes * 2 > n ? "yes" : "doubt";
 }
-
-const scoreCls = (score, prefix) =>
-  score === null ? `${prefix}-unk` : `${prefix}-${score >= 67 ? "bad" : score >= 34 ? "warn" : "ok"}`;
 
 /** failed 为查询失败的风控数据源名。 */
 function computeVerdict(ev, score, failed) {
@@ -671,12 +714,73 @@ function computeVerdict(ev, score, failed) {
   const doubtText = doubt.length ? "存疑：" + doubt.join("、") + "，数据源意见不一" : "";
   let sentence;
   if (hit.length) sentence = "检测到：" + hit.join("、") + (doubt.length ? `；${doubtText}` : "");
-  else if (score !== null && score >= 34) sentence = "风险评分偏高，建议进一步排查" + (doubt.length ? `；${doubtText}` : "");
+  // 圆环显示的是多源综合分，这里点明是 ipquery 一家的分数偏高
+  else if (score !== null && score >= 34) sentence = `ipquery 风险分偏高（${score}/100），建议进一步排查` + (doubt.length ? `；${doubtText}` : "");
   else if (doubt.length) sentence = doubtText;
   else if (states.mobile === "yes") sentence = "未发现风险标志（移动网络出口）";
   else sentence = "未触发明显风险标志";
   if (failed.length) sentence += `；${failed.join("、")} 查询失败，结论基于其余数据源`;
   return { level, sentence, color, hit, score };
+}
+
+// ───────── 综合分与可信度（手机版独有，桌面版仍显示 ipquery 的分数）─────────
+// 圆环以前只显示 ipquery 一家的 risk_score，会和多源投票的结论打架（判成中等风险，圆环却是绿色 30 分）。
+// 现在按公开的权重把各维度的投票和 ipquery 分数加起来，再落进结论等级对应的区间，颜色和结论必然一致。
+const DIM_WEIGHT = { critical: 45, risk: 25 }; // 每个维度满分；按认为「是」的数据源占比折算
+const IPQUERY_WEIGHT = 0.3;                     // ipquery 风险分（0-100）折算进综合分的比例
+const BANDS = { "较为干净": [0, 33], "中等风险": [34, 66], "高风险": [67, 100] };
+
+/** 返回 {score, raw, parts, band}：parts 是每一项的得分明细，raw 是落区间前的合计。 */
+function compositeScore(ev, ipqScore, level) {
+  const parts = [];
+  for (const [k, zh, sev] of DIMENSIONS) {
+    if (!(sev in DIM_WEIGHT)) continue; // 「移动网络」之类只作参考，不计分
+    const [yes, n] = tally(ev[k] || []);
+    if (n) parts.push({ key: k, label: zh, yes, n, w: DIM_WEIGHT[sev], pts: DIM_WEIGHT[sev] * yes / n });
+  }
+  if (ipqScore !== null) parts.push({ key: "ipquery", label: "ipquery 风险分", raw: ipqScore, pts: ipqScore * IPQUERY_WEIGHT });
+  const raw = Math.min(100, parts.reduce((s, p) => s + p.pts, 0));
+  const band = BANDS[level] || null;
+  const score = band ? Math.round(Math.min(band[1], Math.max(band[0], raw))) : null;
+  return { score, raw, parts, band };
+}
+
+/** 各维度的多数意见：true / false，打平为 null，没人表态为 undefined。 */
+function consensus(ev) {
+  return Object.fromEntries(Object.entries(ev).map(([k, votes]) => {
+    const [yes, n] = tally(votes);
+    return [k, n === 0 ? undefined : yes * 2 > n ? true : yes * 2 < n ? false : null];
+  }));
+}
+
+/** 每个成功返回的数据源是否和多数意见一致（只看计分的维度）。
+ *  返回 {agree, total, per: [{src, dims, against}]}：against 是这个源和多数不同（或打平）的维度名。 */
+function agreement(ev, okSources) {
+  const cons = consensus(ev);
+  const scored = DIMENSIONS.filter(([, , s]) => s in DIM_WEIGHT);
+  const per = okSources.map(src => {
+    const mine = scored.flatMap(([k, zh]) => (ev[k] || []).filter(([s]) => s === src).map(([, v]) => [k, zh, v]));
+    return { src, dims: mine.length, against: mine.filter(([k, , v]) => cons[k] !== v).map(([, zh]) => zh) };
+  }).filter(p => p.dims);
+  return { agree: per.filter(p => !p.against.length).length, total: per.length, per };
+}
+
+/** 可信度：看有几个数据源成功返回、意见是否一致。 */
+function confidence(ev, ok, failed, level) {
+  if (!(level in BANDS)) return { level: "低", dots: 1, why: "风控数据不足" };
+  const disputed = DIMENSIONS.filter(([k, , s]) => {
+    const [yes, n] = tally(ev[k] || []);
+    return s in DIM_WEIGHT && n >= 2 && yes > 0 && yes < n;
+  }).map(([, zh]) => zh);
+  const why = [];
+  if (failed.length) why.push(`${failed.join("、")} 查询失败`);
+  if (disputed.length) why.push(`${disputed.join("、")} 各源意见不一`);
+  if (ok.length < 3 && !failed.length) why.push(`只有 ${ok.length} 个数据源`);
+  let lv;
+  if (ok.length < 2 || disputed.length >= 2) lv = "低";
+  else if (failed.length || disputed.length || ok.length < 3) lv = "中";
+  else lv = "高";
+  return { level: lv, dots: { 高: 3, 中: 2, 低: 1 }[lv], why: why.join("；") || `${ok.length} 个数据源全部返回，意见一致` };
 }
 
 /** 对一组数据源结果给出完整判定。 */
@@ -687,7 +791,9 @@ function assess(results) {
   const voters = voteSources().filter(k => k in results);
   const failed = voters.filter(k => !isObj(results[k]));
   const ok = voters.filter(k => isObj(results[k])).sort();
-  return { src, ev, score, scoreSrc, verdict: computeVerdict(ev, score, failed), ok };
+  const verdict = computeVerdict(ev, score, failed);
+  return { src, ev, score, scoreSrc, verdict, ok, failed,
+    comp: compositeScore(ev, score, verdict.level), agree: agreement(ev, ok), conf: confidence(ev, ok, failed, verdict.level) };
 }
 
 // ───────── 历史对比 ─────────
@@ -743,23 +849,28 @@ const fmtTime = (d, sec) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d
   + (sec ? `:${pad(d.getSeconds())}` : "");
 const MARK = { "较为干净": "✓", "中等风险": "⚠", "高风险": "✗" };
 
-function renderDiagnosis(diag) {
+/** 首屏只在出口 IP 或结论变了时显示历史对比，其余情况（第一次记录、数据源不同、都没变）只放进「详细数据」。 */
+const diagWorthShowing = diag => !!diag && !diag.skipped && (diag.changed || !diag.same_ip);
+
+/** flat 为 true 时用折叠区里的浅底样式，否则是首屏的毛玻璃卡片。 */
+function renderDiagnosis(diag, flat) {
+  const box = flat ? "diag-flat" : "diag-box";
   if (diag === null) {
-    return '<div class="diag-box diag-info"><div class="diag-title">已建立检测基线</div>'
+    return `<div class="${box} diag-info"><div class="diag-title">已建立检测基线</div>`
       + '<div class="diag-body">这是这台设备上的第一次记录，后续再检测时会自动对比，判断评分变化究竟是「节点换了 IP」还是「数据库重新分类」。</div></div>';
   }
-  if (diag.skipped) return `<div class="diag-box diag-info"><div class="diag-body">${esc(diag.reason)}</div></div>`;
+  if (diag.skipped) return `<div class="${box} diag-info"><div class="diag-body">${esc(diag.reason)}</div></div>`;
   if (!diag.changed) {
     const when = esc(diag.prev_time || "—");
     if (!diag.same_ip) {
-      return `<div class="diag-box diag-info"><div class="diag-body">与上次检测（${when}）相比，出口 IP 从 ${esc(diag.prev_ip || "—")} `
-        + `换成了 ${esc(diag.cur_ip)}，判定结果一致。</div></div>`;
+      return `<div class="${box} diag-info"><div class="diag-title">出口 IP 换了，判定结果一致</div>`
+        + `<div class="diag-body">与上次检测（${when}）相比，出口 IP 从 ${esc(diag.prev_ip || "—")} 换成了 ${esc(diag.cur_ip)}。</div></div>`;
     }
-    return `<div class="diag-box diag-info"><div class="diag-body">与上次检测（${when}）相比，出口 IP 和判定结果都没变。</div>`
+    return `<div class="${box} diag-info"><div class="diag-body">与上次检测（${when}）相比，出口 IP 和判定结果都没变。</div>`
       + '<div class="diag-meta">如果你刚切换过节点：同一订阅的多个节点常常共用同一个出口，结果不变是正常的。'
       + "想确认，换一个不同地区或机房的节点再测。</div></div>";
   }
-  return `<div class="diag-box diag-${diag.badge}"><div class="diag-title">${esc(diag.title)}</div>`
+  return `<div class="${box} diag-${diag.badge}"><div class="diag-title">${esc(diag.title)}</div>`
     + `<div class="diag-body">${esc(diag.text)}</div>`
     + `<div class="diag-meta">上次检测：${esc(diag.prev_time || "—")}（${esc(diag.prev_level || "—")}） → 本次：${esc(diag.cur_level)}</div></div>`;
 }
@@ -808,7 +919,7 @@ function place(src) {
 }
 
 function renderHero(ip, a, when, runNo, stale) {
-  const { src, verdict: v, scoreSrc } = a;
+  const { src, verdict: v, comp, conf, agree } = a;
   const [asn, org] = asnInfo(src);
   const asnStr = asn !== "—" ? `${asn} · ${org}` : org;
   const relay = yn(g(src.iplocate, "privacy", "is_icloud_relay"))
@@ -817,20 +928,24 @@ function renderHero(ip, a, when, runNo, stale) {
   const staleNote = stale.length
     ? `<div class="relay">${esc(stale.join("、"))}这次没能换新连接（本页能用的新域名用完了）。如果你刚切换过节点，结果可能还是切换前的；把本页从后台划掉、重新打开再测。</div>`
     : "";
+  // 圆环颜色跟结论走（综合分落在结论等级的区间里，两者不会打架）
+  const dots = [1, 2, 3].map(i => `<span${i > conf.dots ? ' class="off"' : ""}>●</span>`).join("");
+  const agreeTxt = agree.total && v.level in BANDS ? `${agree.agree}/${agree.total} 个数据源一致` : "";
   return `<section class="hero">
   <div class="hero-top">
     <div class="hero-ip-block"><div class="hero-label">当前出口 IP</div><div class="hero-ip">${esc(ip)}</div></div>
     <div class="hero-score-block">
-      <div class="ring ${scoreCls(v.score, "v")}" style="--p:${v.score ?? 0}"><div class="ring-in">
-        <div class="hero-score ${scoreCls(v.score, "v")}">${v.score !== null ? v.score : "—"}</div><div class="ring-cap">风险分</div>
+      <div class="ring ${v.color}" style="--p:${comp.score ?? 0}"><div class="ring-in">
+        <div class="hero-score ${v.color}">${comp.score ?? "—"}</div><div class="ring-cap">综合分</div>
       </div></div>
-      <div class="hero-score-label">${scoreSrc ? esc(scoreSrc) : "暂无评分"}</div>
     </div>
   </div>
   <div class="hero-verdict ${v.color}">
     <span class="v-mark">${MARK[v.level] || "?"}</span><span class="v-level">${esc(v.level)}</span>
     <span class="v-sep">·</span><span class="v-sentence">${esc(v.sentence)}</span>
   </div>
+  <div class="conf"><span class="conf-badge"><span class="conf-dots" aria-hidden="true">${dots}</span>可信度${esc(conf.level)}</span>`
+    + `<span>${esc(agreeTxt)}</span></div>
   ${relay}${staleNote}
   <div class="hero-meta">
     <div class="hm-item"><div class="hm-k">位置</div><div class="hm-v">${esc(place(src))}</div></div>
@@ -838,37 +953,58 @@ function renderHero(ip, a, when, runNo, stale) {
     <div class="hm-item"><div class="hm-k">网络类型</div><div class="hm-v">${esc(netTypeZh(src))}</div></div>
     <div class="hm-item"><div class="hm-k">检测时间</div><div class="hm-v">${esc(when)}<div class="rt-sub">本页第 ${runNo} 次检测</div></div></div>
   </div>
+  ${renderBreakdown(a)}
 </section>`;
 }
 
-function renderRiskGrid(a) {
-  const { ev, score, scoreSrc, src } = a;
-  const cells = DIMENSIONS.map(([key, label, sev]) => {
-    const votes = ev[key] || [];
+const fmtPts = x => String(Math.round(x * 10) / 10);
+const dimLabels = sev => DIMENSIONS.filter(([, , s]) => s === sev).map(([, zh]) => zh).join(" / ");
+
+/** 主卡片里的「评分依据」：每个维度各源怎么判、各加几分，合计怎么落进结论区间，各源是否一致。 */
+function renderBreakdown(a) {
+  const { ev, comp, agree, conf, verdict: v, failed } = a;
+  const ST = { unknown: ["未知", "t-unk"], no: ["否", "t-ok"], yes: ["是", "t-bad"], doubt: ["存疑", "t-warn"] };
+  const row = (k, tag, cls, pts, zero, sub, extraCls) =>
+    `<div class="bd-row${extraCls || ""}"><div class="bd-k">${esc(k)}${tag ? `<span class="bd-tag ${cls}">${tag}</span>` : ""}</div>`
+    + `<div class="bd-pts${zero ? " zero" : ""}">${esc(pts)}</div><div class="bd-sub">${esc(sub)}</div></div>`;
+
+  const rows = DIMENSIONS.map(([k, zh, sev]) => {
+    const votes = ev[k] || [];
     const st = dimState(votes);
-    const [yes, n] = tally(votes);
-    let tag, cls, hint;
-    if (st === "unknown") {
-      [tag, cls] = ["未知", "rg-unk"];
-      hint = KEY_ONLY_DIMS.has(key) && !ipapiKey() ? "需在下方「设置」填 ipapi.is key" : "无数据";
-    } else if (st === "no") {
-      [tag, cls, hint] = ["否", "rg-ok", n > 1 ? `${n} 源一致` : "1 源"];
-    } else if (st === "yes") {
-      [tag, cls, hint] = ["是", sev === "info" ? "rg-info" : "rg-bad", `${yes}/${n} 源判定`];
-    } else {
-      [tag, cls, hint] = ["存疑", sev === "info" ? "rg-info" : "rg-warn", `${yes}/${n} 源认为是`];
-    }
-    const detail = votes.map(([s, v]) => `${s}：${v ? "是" : "否"}`).join(" / ");
-    return `<div class="rg-cell"><div class="rg-label">${esc(label)}</div><div class="rg-value ${cls}">${tag}</div>`
-      + `<div class="rg-hint">${esc(hint)}</div>${detail && st !== "no" ? `<div class="rg-votes">${esc(detail)}</div>` : ""}</div>`;
+    let [tag, cls] = ST[st];
+    if (sev === "info" && st !== "unknown") cls = st === "no" ? "t-unk" : "t-info"; // 移动网络不是风险
+    const part = comp.parts.find(p => p.key === k);
+    const pts = !(sev in DIM_WEIGHT) ? "不计分" : part ? `+${fmtPts(part.pts)}` : "—";
+    let sub = votes.map(([s, x]) => `${s} ${x ? "是" : "否"}`).join(" · ");
+    if (part && part.yes) sub += `（满分 ${part.w} × ${part.yes}/${part.n}）`;
+    if (!votes.length) sub = KEY_ONLY_DIMS.has(k) && !ipapiKey() ? "需在「设置」填 ipapi.is key" : "没有数据源给出判断";
+    return row(zh, tag, cls, pts, !part || !part.pts, sub);
   });
-  cells.push(`<div class="rg-cell rg-cell-wide"><div class="rg-label">风险评分${scoreSrc ? `（${esc(scoreSrc)}）` : ""}</div>`
-    + `<div class="rg-value ${scoreCls(score, "rg")}">${score !== null ? `${score} / 100` : "—"}</div>`
-    + '<div class="rg-hint">0-33 低 · 34-66 中 · 67-100 高</div></div>');
-  cells.push('<div class="rg-cell rg-cell-wide"><div class="rg-label">网络类型</div>'
-    + `<div class="rg-value rg-info">${esc(netTypeZh(src))}</div>`
-    + '<div class="rg-hint">住宅宽带 / 移动网络最干净，机房托管最容易被风控</div></div>');
-  return `<div class="rg-grid">${cells.join("")}</div>`;
+  const ipq = comp.parts.find(p => p.key === "ipquery");
+  rows.push(ipq ? row("ipquery 风险分", "", "", `+${fmtPts(ipq.pts)}`, !ipq.pts, `${ipq.raw}/100 × ${IPQUERY_WEIGHT}`)
+    : row("ipquery 风险分", "", "", "—", true, "没有返回分数"));
+  let totalSub;
+  if (!comp.band) totalSub = "风控数据不足，不给综合分";
+  else {
+    const [lo, hi] = comp.band, r = fmtPts(comp.raw);
+    totalSub = comp.raw < lo ? `合计 ${r}，低于「${v.level}」区间下限，按 ${lo} 计`
+      : comp.raw > hi ? `合计 ${r}，超过「${v.level}」区间上限，按 ${hi} 计`
+      : `合计 ${r}，在「${v.level}」区间 ${lo}–${hi} 内`;
+  }
+  rows.push(row("综合分", "", "", comp.score ?? "—", false, totalSub, " bd-total"));
+
+  const agreeRows = agree.per.map(p => `<li><span class="sa-mark ${p.against.length ? "sa-no" : "sa-ok"}">${p.against.length ? "≠" : "✓"}</span>`
+    + `<span class="sa-name">${esc(p.src)}</span><span class="sa-txt">${p.against.length ? `${esc(p.against.join("、"))}和多数意见不同` : "和多数意见一致"}</span></li>`)
+    .concat(failed.map(s => `<li><span class="sa-mark sa-fail">×</span><span class="sa-name">${esc(s)}</span><span class="sa-txt">查询失败，没有参与</span></li>`));
+
+  return `<details class="why"><summary>评分依据<span class="sum-hint">每个数据源怎么判</span></summary><div class="why-body">
+    <div class="why-formula">综合分 0–100，越低越干净。每个风险项按认为「是」的数据源占比折算：${esc(dimLabels("critical"))} 满分 ${DIM_WEIGHT.critical}，`
+    + `${esc(dimLabels("risk"))} 满分 ${DIM_WEIGHT.risk}；再加 ipquery 风险分 × ${IPQUERY_WEIGHT}。合计落进结论等级的区间：`
+    + "较为干净 0–33 · 中等风险 34–66 · 高风险 67–100，所以分数颜色和结论一定一致。结论等级本身由多源投票决定，规则和桌面版相同。</div>"
+    + `<div class="bd-list">${rows.join("")}</div>`
+    + `<div class="why-h">可信度${esc(conf.level)}：${esc(conf.why)}</div>`
+    + `<ul class="src-agree">${agreeRows.join("")}</ul>`
+    + "</div></details>";
 }
 
 function renderRoutes(ip, main, routes, extra) {
@@ -876,48 +1012,33 @@ function renderRoutes(ip, main, routes, extra) {
     const [asn, org] = asnInfo(src);
     return [place(src), `${asn} ${org}`.replace(/^[\s—]+|[\s—]+$/g, ""), netTypeZh(src)].filter(p => p && p !== "—").join(" · ");
   };
-  const row = (name, sub, rip, det, v, note) =>
-    `<div class="rt-row"><div class="rt-name">${esc(name)}<div class="rt-sub">${esc(sub)}</div></div>`
+  const row = (name, rip, det, v, score) =>
+    `<div class="rt-row"><div class="rt-name">${esc(name)}<div class="rt-sub">分流规则</div></div>`
     + `<div class="rt-ip">${esc(rip)}<div class="rt-sub">${esc(det)}</div></div>`
-    + `<div class="rt-verdict ${v.color}"><b>${MARK[v.level] || "?"} ${esc(v.level)}</b><div class="rt-sub">${esc(note || v.sentence)}</div></div></div>`;
+    + `<div class="rt-verdict ${v.color}"><b>${MARK[v.level] || "?"} ${esc(v.level)}${score != null ? ` · ${score} 分` : ""}</b>`
+    + `<div class="rt-sub">${esc(v.sentence)}</div></div></div>`;
 
-  const rows = [row("默认线路", "其他网站", ip, detail(main.src), main.verdict)];
-  const worse = [];
+  const rows = [], same = [], worse = [];
   for (const [name] of ROUTE_PROBES) {
     const r = routes[name];
     if (r === undefined) continue;
     if (r instanceof Error) {
-      rows.push(row(name, "—", "—", "检测失败（该服务可能不可达）", { level: "未知", color: "v-unk" }, "未能从该服务取得出口 IP"));
+      rows.push(row(name, "—", "检测失败（该服务可能不可达）", { level: "未知", color: "v-unk", sentence: "未能从该服务取得出口 IP" }));
       continue;
     }
-    if (r === ip) {
-      rows.push(row(name, "分流规则", r, "与默认线路相同", main.verdict, "与默认线路是同一个出口"));
-      continue;
-    }
+    if (r === ip) { same.push(name); continue; } // 和默认线路同出口的合成一行，结论就是上面主卡片的
     const a = assess(extra[r] || {});
-    rows.push(row(name, "分流规则", r, detail(a.src), a.verdict));
+    rows.push(row(name, r, detail(a.src), a.verdict, a.comp.score));
     // 只在两边都有明确等级时比较；默认线路「数据不足」时不能说别的线路「更差」
     if (a.verdict.level in LEVEL_RANK && main.verdict.level in LEVEL_RANK
         && LEVEL_RANK[a.verdict.level] > LEVEL_RANK[main.verdict.level]) worse.push(`${name} ${a.verdict.level}`);
   }
+  if (same.length) {
+    rows.unshift(`<div class="rt-row rt-same"><span class="rt-name">${esc(same.join("、"))}</span>`
+      + '<span class="rt-same-txt">与默认线路同出口，结论同上</span></div>');
+  }
   const hint = worse.length ? "注意：" + worse.join("、") : "各服务实际看到的 IP";
-  const note = '<div class="rt-note">YouTube 不允许网页读取它的线路诊断页，手机网页版测不了它的分流出口。</div>';
-  return [`<div class="rt-list">${rows.join("")}</div>${note}`, hint];
-}
-
-function renderSummary(ip, a) {
-  const { src, verdict: v } = a;
-  const loc = place(src).split(" · ");
-  const [asn, asnOrg] = asnInfo(src);
-  const cols = [
-    ["基本信息", [["出口 IP", ip], ["国家", loc[0] || "—"], ["城市", loc.length > 1 ? loc[loc.length - 1] : "—"]]],
-    ["网络归属", [["ASN", asn], ["服务商", asnOrg], ["网络类型", netTypeZh(src)]]],
-    ["综合判定", [["等级", v.level], ["风险评分", v.score !== null ? `${v.score} / 100` : "—"], ["命中项", v.hit.length ? v.hit.join("、") : "无"]]],
-  ];
-  return '<div class="sum-grid">' + cols.map(([title, rows]) =>
-    `<div class="sum-col"><div class="sum-title">${esc(title)}</div>`
-    + rows.map(([k, val]) => `<div class="sum-row"><div class="sum-k">${esc(k)}</div><div class="sum-v">${esc(val)}</div></div>`).join("")
-    + "</div>").join("") + "</div>";
+  return [`<div class="rt-list">${rows.join("")}</div>`, hint];
 }
 
 /** 递归把对象渲染成中文 key-value 表。 */
@@ -984,18 +1105,23 @@ function buildReport(run, runNo) {
   }
 
   const [routesHtml, routesHint] = renderRoutes(ip, main, routes, extra);
-  const cards = SOURCES.map(s => renderSourceCard(s, ip, results[s.key])).join("");
+  const cards = activeSources().map(s => renderSourceCard(s, ip, results[s.key])).join("");
+  const keyNote = ipapiKey() ? ""
+    : '<div class="more-note">ipapi.is 没填 key 时只给归属信息、不参与判定，所以没有查询；在「设置」里填 key 后参与判定。</div>';
   const raw = JSON.stringify({ 默认出口: plain(results), 分流出口: plain(routes), 分流出口数据: plain(extra) }, null, 2);
   const title = (t, hint) => `<div class="section-title">${t}${hint ? ` <span class="st-hint">${esc(hint)}</span>` : ""}</div>`;
+  const showDiag = diagWorthShowing(diag); // IP 或结论变了才上首屏
 
   return renderHero(ip, main, fmtTime(now, true), runNo, stale)
+    + (showDiag ? renderDiagnosis(diag, false) : "")
     + title("分流出口", routesHint) + routesHtml
-    + title("历史对比", "自动判断变化原因") + renderDiagnosis(diag)
-    + title("风险检测一览", "红色 = 命中风险 / 绿色 = 正常") + renderRiskGrid(main)
-    + title("综合摘要") + renderSummary(ip, main)
-    + title("数据源详情", "字段名已翻译为中文") + cards
-    + title("外部检测网站", "点击条目在浏览器中打开") + renderExternal(ip)
-    + `<details><summary>展开查看原始 JSON 数据</summary><pre>${esc(raw)}</pre></details>`;
+    + '<details class="more"><summary>详细数据<span class="sum-hint">数据源原始返回 · 外部检测网站</span></summary><div class="more-body">'
+    + (showDiag ? "" : '<div class="more-h">历史对比</div>' + renderDiagnosis(diag, true))
+    + '<div class="more-h">数据源原始返回<span class="st-hint">（字段名已翻译为中文）</span></div>' + keyNote + cards
+    + '<div class="more-h">外部检测网站</div>' + renderExternal(ip)
+    + '<div class="more-note" style="margin-top:10px">YouTube 不允许网页读取它的线路诊断页，手机网页版测不了它的分流出口。</div>'
+    + `<details class="raw"><summary>原始 JSON</summary><pre>${esc(raw)}</pre></details>`
+    + "</div></details>";
 }
 
 // ───────── 页面控制 ─────────
@@ -1011,11 +1137,14 @@ async function start(force) {
   $("rerun").disabled = true;
   $("report").innerHTML = `<div class="progress"><div class="pg-title">正在第 ${runCount} 次检测</div><ul class="pg-log" id="pg-log"></ul></div>`;
   window.scrollTo(0, 0);
+  const thisRun = runCount;
   const log = (text, cls) => {
+    const ul = $("pg-log");
+    if (!ul || thisRun !== runCount) return; // 上一次检测超时后才回来的请求，不往这次的日志里写
     const li = document.createElement("li");
     li.textContent = text;
     if (cls) li.className = cls;
-    $("pg-log").appendChild(li);
+    ul.appendChild(li);
   };
   try {
     const run = await runAll(log, force);
@@ -1092,7 +1221,8 @@ $("clear-history").addEventListener("click", () => {
 $("clear-cache").addEventListener("click", () => { store.del("cache"); $("clear-cache").textContent = "缓存已清除"; haptic("success"); });
 
 // 测试入口（不影响页面）
-window.__ipcheck = { assess, computeVerdict, collectEvidence, diagnoseChange, dimState, place, asnInfo, netTypeZh };
+window.__ipcheck = { assess, computeVerdict, collectEvidence, diagnoseChange, dimState, place, asnInfo, netTypeZh,
+  compositeScore, agreement, confidence };
 
 refreshSettings();
 start(false);
