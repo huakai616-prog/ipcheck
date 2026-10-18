@@ -8,7 +8,7 @@
 <meta name="description" content="在手机浏览器里检测当前网络出口 IP 的纯净度：多数据源交叉验证、分流出口、历史对比。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IP 体检">
 <meta name="theme-color" content="#eef1f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07080d" media="(prefers-color-scheme: dark)">
@@ -254,6 +254,8 @@ details[open] summary::after { transform: rotate(90deg); }
 .btn-primary { background: var(--blue); border-color: transparent; color: #fff; }
 .set-hint { font-size: 12px; color: var(--label3); margin-top: 8px; line-height: 1.7; }
 .set-sep { border-top: 1px solid var(--sep); margin: 16px 0 12px; }
+.set-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; font-weight: 600; }
+.set-switch input { flex: none; margin: 0; accent-color: var(--green); } /* 不定尺寸：iPhone 上是系统开关，定了会被压扁 */
 
 .footer { text-align: center; color: var(--label3); font-size: 12px; margin-top: 32px; line-height: 1.8; }
 .credit { font-size: 11px; color: var(--label3); margin-top: 6px; letter-spacing: 4px; }
@@ -310,6 +312,9 @@ details[open] summary::after { transform: rotate(90deg); }
       <button class="btn btn-primary" id="key-save" type="button">保存</button>
     </div>
     <div class="set-hint" id="key-hint">填了以后多一个数据源参与判定，并能检测「爬虫 Bot」。key 只存在这台设备的浏览器里，不会上传到别处。免费 key 在 <a href="https://ipapi.is/" target="_blank" rel="noopener">ipapi.is</a> 注册后获取。</div>
+    <div class="set-sep"></div>
+    <label class="set-switch">震动反馈<input id="haptics-toggle" type="checkbox" switch></label>
+    <div class="set-hint">点按钮、检测完成时轻震一下：干净震两下，有风险震三下。</div>
     <div class="set-sep"></div>
     <div class="set-label">本机数据</div>
     <div class="set-row">
@@ -1016,9 +1021,11 @@ async function start(force) {
     const run = await runAll(log, force);
     $("report").innerHTML = buildReport(run, runCount);
     document.title = `IP 体检 · ${run.ip}`;
+    if (force) haptic({ ok: "success", warn: "warn", bad: "error" }[document.body.dataset.tone] || "warn");
   } catch (e) {
     $("report").innerHTML = `<div class="fatal">检测失败：${esc(e.message)}<div class="diag-body">`
       + "检查一下手机网络或代理是否正常，然后点「重新检测」。</div></div>";
+    if (force) haptic("error");
   } finally {
     running = false;
     $("rerun").disabled = false;
@@ -1026,13 +1033,52 @@ async function start(force) {
   }
 }
 
+// ───────── 震动反馈 ─────────
+// 安卓用 navigator.vibrate；iPhone 的 Safari 不支持它，但点一下系统开关控件（<input switch>）
+// 会带原生触感，借这个来震。不支持的设备上什么也不发生。
+const hapticsOn = () => store.get("haptics", true) !== false;
+const HAPTIC = { tap: [8], success: [10, 70, 10], warn: [12, 70, 12, 70, 12], error: [30, 80, 30] };
+
+function iosTick() {
+  try {
+    const label = document.createElement("label");
+    label.setAttribute("aria-hidden", "true");
+    label.style.display = "none";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.setAttribute("switch", "");
+    label.appendChild(input);
+    document.head.appendChild(label);
+    label.click();
+    label.remove();
+  } catch (e) { /* 不支持就算了 */ }
+}
+
+function haptic(kind) {
+  if (!hapticsOn()) return;
+  const pattern = HAPTIC[kind] || HAPTIC.tap;
+  try {
+    if (typeof navigator.vibrate === "function" && navigator.vibrate(pattern)) return;
+  } catch (e) { /* 走下面的 iOS 办法 */ }
+  // iOS 每次只能轻触一下，按图案里「震」的段数连点几下
+  for (let i = 0; i < Math.ceil(pattern.length / 2); i++) setTimeout(iosTick, i * 110);
+}
+
 function refreshSettings() {
   $("key-input").value = ipapiKey();
+  $("haptics-toggle").checked = hapticsOn();
   $("clear-history").textContent = `清除历史记录（${loadHistory().length} 条）`;
 }
 
-$("rerun").addEventListener("click", () => start(true));
+$("rerun").addEventListener("click", () => { haptic("tap"); start(true); });
+$("haptics-toggle").addEventListener("change", e => {
+  store.set("haptics", e.target.checked);
+  haptic("tap"); // 开关本身在 iPhone 上就会震，安卓补一下
+});
+// 展开折叠、打开外部网站、查看原始页面时轻震
+document.addEventListener("click", e => { if (e.target.closest("summary, .ex-row, .src-link")) haptic("tap"); });
 $("key-save").addEventListener("click", () => {
+  haptic("tap");
   const k = $("key-input").value.trim();
   if (k) store.set("ipapi_key", k); else store.del("ipapi_key");
   $("key-hint").textContent = k ? "已保存。下次检测起 ipapi.is 参与判定（数据源变了，第一次不做历史对比）。"
@@ -1040,9 +1086,10 @@ $("key-save").addEventListener("click", () => {
   refreshSettings();
 });
 $("clear-history").addEventListener("click", () => {
-  if (confirm("清除这台设备上的全部检测历史？")) { store.del("history"); refreshSettings(); }
+  haptic("tap");
+  if (confirm("清除这台设备上的全部检测历史？")) { store.del("history"); refreshSettings(); haptic("success"); }
 });
-$("clear-cache").addEventListener("click", () => { store.del("cache"); $("clear-cache").textContent = "缓存已清除"; });
+$("clear-cache").addEventListener("click", () => { store.del("cache"); $("clear-cache").textContent = "缓存已清除"; haptic("success"); });
 
 // 测试入口（不影响页面）
 window.__ipcheck = { assess, computeVerdict, collectEvidence, diagnoseChange, dimState, place, asnInfo, netTypeZh };
