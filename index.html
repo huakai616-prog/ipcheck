@@ -358,39 +358,66 @@ function parseTrace(body) {
   return m ? m[1] : null;
 }
 
-const IP_ECHO = [
-  ["https://ipinfo.io/json", t => { const d = JSON.parse(t); delete d.readme; return { ip: String(d.ip || ""), info: d }; }],
-  ["https://api.ipify.org?format=json", t => ({ ip: String(JSON.parse(t).ip || "") })],
-  ["https://www.cloudflare.com/cdn-cgi/trace", t => ({ ip: parseTrace(t) || "" })],
-];
+// 手机上的代理 App 切换节点后，切换前建立的连接通常不会断，浏览器还会继续复用；
+// 同一个域名再请求，走的仍是老节点，重新检测就拿到旧出口。所以每次检测都从一组域名里
+// 挑本页还没连过的，强制新建连接。这些域名都在 Cloudflare 上，/cdn-cgi/trace 回显访问者 IP
+// 且允许跨域读取；同一组的域名在分流规则里走同一条线路（cloudflare.com / openai.com、chatgpt.com /
+// anthropic.com、claude.ai），换域名不会换线路。
+const TRACE_POOLS = {
+  default: ["www.cloudflare.com", "speed.cloudflare.com", "dash.cloudflare.com", "developers.cloudflare.com",
+            "radar.cloudflare.com", "workers.cloudflare.com", "pages.cloudflare.com", "api.cloudflare.com",
+            "support.cloudflare.com", "community.cloudflare.com", "one.dash.cloudflare.com", "cloudflare.com"],
+  ChatGPT: ["chatgpt.com", "ab.chatgpt.com", "sora.chatgpt.com", "chat.openai.com", "openai.com",
+            "www.openai.com", "api.openai.com", "platform.openai.com", "auth.openai.com"],
+  Claude: ["claude.ai", "www.claude.ai", "api.anthropic.com", "console.anthropic.com", "www.anthropic.com",
+           "docs.anthropic.com", "support.anthropic.com", "status.anthropic.com", "privacy.anthropic.com",
+           "trust.anthropic.com", "assets.anthropic.com"],
+};
 
-/** 同时请求几个回显服务，取最先成功的；优先 ipinfo（带地理信息）。 */
+// 本页连过的域名。连接池在刷新页面后还在，所以记在 sessionStorage；把网页从后台划掉才一起清空
+const usedHosts = new Set((() => {
+  try { return JSON.parse(sessionStorage.getItem("ipcheck.used_hosts") || "[]"); } catch (e) { return []; }
+})());
+function markUsed(host) {
+  usedHosts.add(host);
+  try { sessionStorage.setItem("ipcheck.used_hosts", JSON.stringify([...usedHosts])); } catch (e) { /* 只记在内存里 */ }
+}
+
+async function trace(host) {
+  const ip = parseTrace(await fetchText(`https://${host}/cdn-cgi/trace`));
+  if (!ip) throw new Error("返回里没有 IP");
+  return ip;
+}
+
+/** 依次试一组域名里本页还没连过的（最多 3 个），返回 {ip, fresh}；
+ *  新域名用完或都失败时退回第一个域名，fresh 为 false，表示可能沿用了切换节点前的连接。 */
+async function traceFresh(pool) {
+  let err;
+  for (const host of pool.filter(h => !usedHosts.has(h)).slice(0, 3)) {
+    markUsed(host);
+    try { return { ip: await trace(host), fresh: true }; } catch (e) { err = e; }
+  }
+  try { return { ip: await trace(pool[0]), fresh: false }; } catch (e) { throw err || e; }
+}
+
+/** Cloudflare 整组都不通时，退回其他回显服务（这些会复用旧连接）。 */
 async function detectEgress() {
-  const tries = IP_ECHO.map(([url, parse]) => fetchText(url).then(parse).then(r => {
-    if (!/^[\da-fA-F:.]+$/.test(r.ip)) throw new Error("不是 IP");
-    return r;
+  try { return await traceFresh(TRACE_POOLS.default); } catch (e) { /* 走下面的备用 */ }
+  const echo = [
+    ["https://ipinfo.io/json", t => JSON.parse(t).ip],
+    ["https://api.ipify.org?format=json", t => JSON.parse(t).ip],
+  ].map(([url, parse]) => fetchText(url).then(t => {
+    const ip = String(parse(t) || "");
+    if (!/^[\da-fA-F:.]+$/.test(ip)) throw new Error("不是 IP");
+    return { ip, fresh: false };
   }));
-  let first;
-  try { first = await Promise.any(tries); } catch (e) { throw new Error("无法获取出口 IP，请检查网络"); }
-  if (first.info) return first;
-  // 其他回显服务先返回时，给 ipinfo 一点时间，拿到地理信息可省一次查询
-  const better = await Promise.race([tries[0].catch(() => null), sleep(1500).then(() => null)]);
-  return better || first;
+  try { return await Promise.any(echo); } catch (e) { throw new Error("无法获取出口 IP，请检查网络"); }
 }
 
 // ───────── 分流出口：各服务实际看到的 IP ─────────
 // 请求按手机上代理客户端的分流规则走各自线路，由服务方回显它看到的访问者 IP。
 // YouTube 的 report_mapping 不允许网页跨域读取，浏览器里测不了。
-const ROUTE_PROBES = [
-  ["ChatGPT", "https://chatgpt.com/cdn-cgi/trace"],
-  ["Claude", "https://claude.ai/cdn-cgi/trace"],
-];
-
-async function probeRoute(url) {
-  const ip = parseTrace(await fetchText(url));
-  if (!ip) throw new Error("返回里没有 IP");
-  return ip;
-}
+const ROUTE_PROBES = [["ChatGPT", TRACE_POOLS.ChatGPT], ["Claude", TRACE_POOLS.Claude]];
 
 // ───────── 数据源 ─────────
 // proxycheck / ip2location / ip-api 不允许网页跨域读取（ip-api 免费版还只有 http），手机网页版用不了；
@@ -427,13 +454,14 @@ const voteSources = () => RISK_SOURCES.filter(k => k !== "ipapi.is" || ipapiKey(
 const SOURCE_BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
 
 // ───────── 结果缓存 ─────────
-// 同一 IP 的数据库判定短时间内不会变，复用结果以节省免费额度（iplocate 免 key 每天只有 50 次）
-async function cachedFetch(key, ip) {
+// 同一 IP 的数据库判定短时间内不会变，打开页面时复用结果以节省免费额度（iplocate 免 key 每天只有 50 次）；
+// 手动点「重新检测」时 force 为 true，一律重新查
+async function cachedFetch(key, ip, force) {
   const tag = key === "ipapi.is" && ipapiKey() ? `${key}+key` : key; // 配了 key 后不复用匿名结果
   const ck = `${tag}|${ip}`;
   const now = Date.now() / 1000;
   const hit = store.get("cache", {})[ck];
-  if (hit && isObj(hit.data) && now - hit.t >= 0 && now - hit.t < CACHE_TTL) {
+  if (!force && hit && isObj(hit.data) && now - hit.t >= 0 && now - hit.t < CACHE_TTL) {
     return { ...hit.data, _cache_age: Math.floor(now - hit.t) };
   }
   const data = await SOURCE_BY_KEY[key].fn(ip);
@@ -445,25 +473,26 @@ async function cachedFetch(key, ip) {
 }
 
 /** 获取默认出口 IP，并发查询全部数据源，同时探测各服务的分流出口。 */
-async function runAll(log) {
-  log("正在获取出口 IP");
-  const { ip, info } = await detectEgress();
-  log(`出口 IP：${ip}`, "ok");
-  const results = info ? { ipinfo: info } : {};
-  const routes = {}, extra = {};
-  const todo = SOURCES.filter(s => !(s.key in results));
-  log(`正在并发查询 ${todo.length} 个数据源，并检测 ${ROUTE_PROBES.length} 个服务的分流出口`);
+async function runAll(log, force) {
+  log("正在获取出口 IP（换新连接）");
+  const { ip, fresh } = await detectEgress();
+  log(`出口 IP：${ip}${fresh ? "" : "（可能沿用了旧连接）"}`, "ok");
+  const results = {}, routes = {}, extra = {};
+  const stale = fresh ? [] : ["默认线路"]; // 没能换新连接取出口的线路
+  const todo = SOURCES;
+  log(`正在并发查询 ${todo.length} 个数据源${force ? "（不用缓存）" : ""}，并检测 ${ROUTE_PROBES.length} 个服务的分流出口`);
 
-  const jobs = todo.map(s => cachedFetch(s.key, ip).then(
+  const jobs = todo.map(s => cachedFetch(s.key, ip, force).then(
     v => { results[s.key] = v; log(`✓ ${s.zh}（${s.key}）`, "ok"); },
     e => { results[s.key] = e; log(`× ${s.zh}（${s.key}）失败：${e.message}`, "bad"); }));
-  for (const [name, url] of ROUTE_PROBES) {
-    jobs.push(probeRoute(url).then(async rip => {
+  for (const [name, pool] of ROUTE_PROBES) {
+    jobs.push(traceFresh(pool).then(async ({ ip: rip, fresh: rf }) => {
       routes[name] = rip;
+      if (!rf) stale.push(name);
       log(`✓ ${name} 看到的 IP：${rip}${rip === ip ? "（同默认线路）" : ""}`, "ok");
       if (rip === ip || rip in extra) return;
       extra[rip] = {};
-      await Promise.all(voteSources().map(k => cachedFetch(k, rip).then(
+      await Promise.all(voteSources().map(k => cachedFetch(k, rip, force).then(
         v => { extra[rip][k] = v; }, e => { extra[rip][k] = e; })));
     }, e => { routes[name] = e; log(`× ${name} 线路出口检测失败`, "bad"); }));
   }
@@ -474,7 +503,7 @@ async function runAll(log) {
   for (const s of todo) if (!(s.key in results)) results[s.key] = late();
   for (const [name] of ROUTE_PROBES) if (!(name in routes)) routes[name] = late();
   for (const rip of Object.keys(extra)) for (const k of voteSources()) if (!(k in extra[rip])) extra[rip][k] = late();
-  return { ip, results, routes, extra };
+  return { ip, results, routes, extra, stale };
 }
 
 // ───────── 翻译 ─────────
@@ -678,7 +707,7 @@ function renderDiagnosis(diag) {
     }
     return `<div class="diag-box diag-info"><div class="diag-body">与上次检测（${when}）相比，出口 IP 和判定结果都没变。</div>`
       + '<div class="diag-meta">如果你刚切换过节点：同一订阅的多个节点常常共用同一个出口，结果不变是正常的。'
-      + "想确认，换一个不同地区或机房的节点再测；如果那样出口还是没变，把本页从后台划掉重开再测（旧连接可能还走原来的节点）。</div></div>";
+      + "想确认，换一个不同地区或机房的节点再测。</div></div>";
   }
   return `<div class="diag-box diag-${diag.badge}"><div class="diag-title">${esc(diag.title)}</div>`
     + `<div class="diag-body">${esc(diag.text)}</div>`
@@ -728,12 +757,15 @@ function place(src) {
   return "—";
 }
 
-function renderHero(ip, a, when) {
+function renderHero(ip, a, when, runNo, stale) {
   const { src, verdict: v, scoreSrc } = a;
   const [asn, org] = asnInfo(src);
   const asnStr = asn !== "—" ? `${asn} · ${org}` : org;
   const relay = yn(g(src.iplocate, "privacy", "is_icloud_relay"))
     ? '<div class="relay">这是 iCloud 专用代理（Private Relay）的 IP，不是你代理节点的出口。想测节点，请在「设置 › 顶部你的名字 › iCloud › 专用代理」里暂时关掉，或换个浏览器打开本页。</div>'
+    : "";
+  const staleNote = stale.length
+    ? `<div class="relay">${esc(stale.join("、"))}这次没能换新连接（本页能用的新域名用完了）。如果你刚切换过节点，结果可能还是切换前的；把本页从后台划掉、重新打开再测。</div>`
     : "";
   return `<section class="hero">
   <div class="hero-top">
@@ -745,12 +777,12 @@ function renderHero(ip, a, when) {
     <span class="v-mark">${MARK[v.level] || "?"}</span><span class="v-level">${esc(v.level)}</span>
     <span class="v-sep">·</span><span class="v-sentence">${esc(v.sentence)}</span>
   </div>
-  ${relay}
+  ${relay}${staleNote}
   <div class="hero-meta">
     <div class="hm-item"><div class="hm-k">位置</div><div class="hm-v">${esc(place(src))}</div></div>
     <div class="hm-item"><div class="hm-k">服务商</div><div class="hm-v">${esc(asnStr)}</div></div>
     <div class="hm-item"><div class="hm-k">网络类型</div><div class="hm-v">${esc(netTypeZh(src))}</div></div>
-    <div class="hm-item"><div class="hm-k">检测时间</div><div class="hm-v">${esc(when)}</div></div>
+    <div class="hm-item"><div class="hm-k">检测时间</div><div class="hm-v">${esc(when)}<div class="rt-sub">本页第 ${runNo} 次检测</div></div></div>
   </div>
 </section>`;
 }
@@ -879,8 +911,8 @@ function plain(obj) {
   return obj;
 }
 
-function buildReport(run) {
-  const { ip, results, routes, extra } = run;
+function buildReport(run, runNo) {
+  const { ip, results, routes, extra, stale } = run;
   const now = new Date();
   const main = assess(results);
   const asBool = { yes: true, no: false }; // 意见不一或无数据记为 null，不能记成「否」
@@ -901,7 +933,7 @@ function buildReport(run) {
   const raw = JSON.stringify({ 默认出口: plain(results), 分流出口: plain(routes), 分流出口数据: plain(extra) }, null, 2);
   const title = (t, hint) => `<div class="section-title">${t}${hint ? ` <span class="st-hint">${esc(hint)}</span>` : ""}</div>`;
 
-  return renderHero(ip, main, fmtTime(now))
+  return renderHero(ip, main, fmtTime(now, true), runNo, stale)
     + title("分流出口", routesHint) + routesHtml
     + title("历史对比", "自动判断变化原因") + renderDiagnosis(diag)
     + title("风险检测一览", "红色 = 命中风险 / 绿色 = 正常") + renderRiskGrid(main)
@@ -914,12 +946,15 @@ function buildReport(run) {
 // ───────── 页面控制 ─────────
 const $ = id => document.getElementById(id);
 let running = false;
+let runCount = 0;
 
-async function start() {
+/** force：手动点「重新检测」时为 true，数据源一律重新查，不用缓存。 */
+async function start(force) {
   if (running) return;
   running = true;
+  runCount += 1;
   $("rerun").disabled = true;
-  $("report").innerHTML = '<div class="progress"><div class="pg-title">正在检测</div><ul class="pg-log" id="pg-log"></ul></div>';
+  $("report").innerHTML = `<div class="progress"><div class="pg-title">正在第 ${runCount} 次检测</div><ul class="pg-log" id="pg-log"></ul></div>`;
   window.scrollTo(0, 0);
   const log = (text, cls) => {
     const li = document.createElement("li");
@@ -928,8 +963,8 @@ async function start() {
     $("pg-log").appendChild(li);
   };
   try {
-    const run = await runAll(log);
-    $("report").innerHTML = buildReport(run);
+    const run = await runAll(log, force);
+    $("report").innerHTML = buildReport(run, runCount);
     document.title = `IP 体检 · ${run.ip}`;
   } catch (e) {
     $("report").innerHTML = `<div class="fatal">检测失败：${esc(e.message)}<div class="diag-body">`
@@ -946,7 +981,7 @@ function refreshSettings() {
   $("clear-history").textContent = `清除历史记录（${loadHistory().length} 条）`;
 }
 
-$("rerun").addEventListener("click", start);
+$("rerun").addEventListener("click", () => start(true));
 $("key-save").addEventListener("click", () => {
   const k = $("key-input").value.trim();
   if (k) store.set("ipapi_key", k); else store.del("ipapi_key");
@@ -963,7 +998,7 @@ $("clear-cache").addEventListener("click", () => { store.del("cache"); $("clear-
 window.__ipcheck = { assess, computeVerdict, collectEvidence, diagnoseChange, dimState, place, asnInfo, netTypeZh };
 
 refreshSettings();
-start();
+start(false);
 </script>
 </body>
 </html>
