@@ -363,7 +363,7 @@ details.raw pre { margin: 0; padding: 0 15px 15px; font-size: 11px; overflow: au
 <script>
 "use strict";
 // 判定逻辑移植自 ~/bin/ipcheck.py；翻译表由 ipcheck_phone_build.py 从 ipcheck.py 注入
-const T = {"KEY_ZH": {"ip": "IP 地址", "hostname": "反向解析", "city": "城市", "city_name": "城市", "region": "地区/省份", "region_name": "地区/省份", "state": "州/省", "country": "国家", "country_code": "国家代码", "country_name": "国家", "country_capital": "首都", "loc": "经纬度", "latitude": "纬度", "longitude": "经度", "lat": "纬度", "lon": "经度", "time_zone": "时区", "org": "组织 / ASN", "postal": "邮编", "zip": "邮编", "zip_code": "邮编", "timezone": "时区", "local_time": "当地时间", "local_time_unix": "当地时间戳", "is_dst": "是否夏令时", "calling_code": "国家区号", "currency_code": "货币", "continent": "大洲", "continent_code": "大洲代码", "domain": "域名", "isp": "服务商", "usage_type": "用途分类", "net_speed": "网速等级", "as": "ASN", "asname": "ASN 名称", "asn": "ASN 编号", "route": "路由前缀", "descr": "ASN 描述", "active": "是否活跃", "type": "类型", "abuser_score": "滥用评分", "created": "创建时间", "updated": "更新时间", "rir": "区域互联网注册机构", "name": "名称", "network": "网段", "is_eu_member": "是否欧盟", "accuracy_radius": "定位精度（公里）", "is_bogon": "是否保留段", "is_mobile": "是否移动网络", "is_satellite": "是否卫星网络", "is_crawler": "是否爬虫", "is_datacenter": "是否数据中心", "is_tor": "是否 Tor 出口", "is_proxy": "是否代理", "is_vpn": "是否 VPN", "is_abuser": "是否滥用源", "is_anycast": "是否任播", "fraud_score": "欺诈评分", "risk": "风险评分", "url": "源链接", "version": "IP 版本", "ip_version": "IP 版本", "elapsed_ms": "查询耗时（毫秒）", "company": "公司", "location": "位置", "abuse": "滥用举报", "datacenter": "数据中心信息", "vpn": "VPN", "proxy": "代理", "hosting": "机房托管", "mobile": "移动网络", "address": "地址", "email": "邮箱", "phone": "电话", "provider": "服务商", "organisation": "组织", "isocode": "国家代码", "countryCode": "国家代码", "regionName": "地区/省份", "regioncode": "地区代码", "continentcode": "大洲代码", "postcode": "邮编", "range": "网段范围", "currency": "货币", "code": "代码", "symbol": "符号", "devices": "关联设备数", "subnet": "同网段", "operator": "VPN 运营方", "anonymity": "匿名度", "popularity": "知名度", "protocols": "协议", "message": "说明", "privacy": "隐私标记", "is_anonymous": "是否匿名", "is_hosting": "是否机房托管", "is_icloud_relay": "是否 iCloud 私有中继", "is_eu": "是否欧盟", "netname": "网络名", "postal_code": "邮编", "zipcode": "邮编", "subdivision": "行政区", "risk_score": "风险评分"}, "NET_TYPE_ZH": {"residential": "住宅宽带", "wireless": "移动网络", "business": "企业网络", "hosting": "机房托管", "isp": "ISP 宽带", "education": "教育网", "government": "政府网络", "banking": "金融机构", "vpn": "VPN", "tor": "Tor", "socks": "SOCKS 代理", "socks4": "SOCKS4 代理", "socks5": "SOCKS5 代理", "http": "HTTP 代理", "https": "HTTPS 代理", "compromised server": "被入侵服务器", "inference engine": "推断为代理", "openvpn": "OpenVPN", "whitelisted": "白名单"}, "COUNTRY_ZH": {"US": "美国", "CN": "中国", "HK": "中国香港", "TW": "中国台湾", "MO": "中国澳门", "JP": "日本", "KR": "韩国", "SG": "新加坡", "MY": "马来西亚", "TH": "泰国", "VN": "越南", "PH": "菲律宾", "ID": "印度尼西亚", "IN": "印度", "PK": "巴基斯坦", "AE": "阿联酋", "SA": "沙特", "IL": "以色列", "TR": "土耳其", "DE": "德国", "GB": "英国", "UK": "英国", "FR": "法国", "IT": "意大利", "ES": "西班牙", "NL": "荷兰", "BE": "比利时", "CH": "瑞士", "AT": "奥地利", "SE": "瑞典", "NO": "挪威", "FI": "芬兰", "DK": "丹麦", "IE": "爱尔兰", "PT": "葡萄牙", "PL": "波兰", "UA": "乌克兰", "RU": "俄罗斯", "CZ": "捷克", "HU": "匈牙利", "RO": "罗马尼亚", "CA": "加拿大", "MX": "墨西哥", "BR": "巴西", "AR": "阿根廷", "CL": "智利", "CO": "哥伦比亚", "AU": "澳大利亚", "NZ": "新西兰", "ZA": "南非", "EG": "埃及", "NG": "尼日利亚", "KE": "肯尼亚"}, "RISK_LEVEL_ZH": {"very high risk": "极高风险", "high risk": "高风险", "medium risk": "中风险", "low risk": "低风险", "very low risk": "极低风险"}, "USAGE_TYPE_ZH": {"ISP": "ISP 互联网服务商", "ISP/MOB": "ISP / 移动网络", "MOB": "移动网络", "DCH": "数据中心 / 主机商", "COM": "商业 / 公司", "EDU": "教育机构", "GOV": "政府机构", "MIL": "军事", "LIB": "图书馆", "ORG": "组织机构", "RSV": "保留地址", "BNK": "银行 / 金融", "ASP": "应用服务商", "CDN": "内容分发网络", "FIN": "金融", "GEN": "通用", "SES": "搜索引擎"}, "CONTINENT_ZH": {"AS": "亚洲", "EU": "欧洲", "NA": "北美洲", "SA": "南美洲", "AF": "非洲", "OC": "大洋洲", "AN": "南极洲"}, "ANTIBOT_SITES": [["ping0.cc", "https://ping0.cc/ip/{ip}", "国内常用 · IP 纯净度评分"], ["IPLark", "https://iplark.com/check", "一键多源检测"], ["IP 检测", "https://www.ipjiance.com", "国内综合查询"], ["Whoer", "https://whoer.net/zh", "匿名度评估"], ["Scamalytics", "https://scamalytics.com/ip/{ip}", "欺诈评分官网"], ["AbuseIPDB", "https://www.abuseipdb.com/check/{ip}", "全球滥用举报库"], ["iprisk.top", "https://iprisk.top", "聚合检测（一次多源）"], ["IP2Location 网页版", "https://www.ip2location.com/{ip}", "详细地理 / 服务商 / 用途"]], "RISK_FIELDS": ["hosting", "is_abuser", "is_anonymous", "is_bogon", "is_crawler", "is_datacenter", "is_hosting", "is_proxy", "is_tor", "is_vpn", "proxy", "vpn"], "DIMENSIONS": [["vpn", "VPN 节点", "risk"], ["proxy", "代理 IP", "critical"], ["anon", "匿名标记", "risk"], ["datacenter", "数据中心", "risk"], ["tor", "Tor 出口", "critical"], ["abuser", "滥用源", "critical"], ["crawler", "爬虫 Bot", "risk"], ["mobile", "移动网络", "info"]], "LINES": [{"id": "ai", "name": "Claude", "title": "Claude", "group": "🤖 AI 专用", "expect": "", "speed": null, "echo": [["Claude", "https://claude.ai/cdn-cgi/trace", "trace"]]}, {"id": "video", "name": "YouTube / Telegram", "title": "YouTube / Telegram", "group": "📺 影音高速", "expect": "", "speed": {"trace": "https://speed.cloudflare.com/cdn-cgi/trace", "ping": "https://speed.cloudflare.com/__down?bytes=0", "down": "https://speed.cloudflare.com/__down?bytes=25000000"}, "echo": [["ipv4.icanhazip.com", "https://ipv4.icanhazip.com/", "plain"], ["4.icanhazip.com", "https://4.icanhazip.com/", "plain"], ["get.geojs.io", "https://get.geojs.io/v1/ip/geo.json", "json-ip"]]}, {"id": "tiktok", "name": "TikTok", "title": "TikTok", "group": "🎵 TikTok", "expect": "JP", "speed": {"trace": "https://gcore.jsdelivr.net/cdn-cgi/trace", "ping": "https://gcore.jsdelivr.net/cdn-cgi/trace", "down": "https://gcore.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/sintel.mp4"}, "echo": [["ipv4.wtfismyip.com", "https://ipv4.wtfismyip.com/text", "plain"], ["ipv4.myip.wtf", "https://ipv4.myip.wtf/text", "plain"], ["ident.me", "https://ident.me/", "plain"]]}, {"id": "other", "name": "其他外网", "title": "Google、普通网页", "group": "🌍 国外网站", "expect": "", "speed": {"trace": "https://testingcf.jsdelivr.net/cdn-cgi/trace", "ping": "https://testingcf.jsdelivr.net/cdn-cgi/trace", "down": "https://testingcf.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/sintel.mp4"}, "echo": [["4.ident.me", "https://4.ident.me/", "plain"], ["v4.ident.me", "https://v4.ident.me/", "plain"], ["checkip.amazonaws.com", "https://checkip.amazonaws.com/", "plain"], ["icanhazip.com", "https://icanhazip.com/", "plain"]]}], "SPEED": {"seconds": 3, "max_bytes": 7000000, "streams": 2, "pings": 4, "fast_mbps": 25, "ok_mbps": 10, "min_mbps": 5, "fast_ms": 150, "ok_ms": 300}, "CLEAN_MAX_SCORE": 10, "AI_DOWN": {"title": "Claude 线路不通", "text": "家宽线路全部不可用时，配置按设计直接断开，不会改走别的出口；这时打开 Claude 也会连不上，等家宽恢复即可"}, "CHATGPT_LINE": {"id": "chatgpt", "name": "ChatGPT", "group": "💬 ChatGPT", "expect": "", "echo": [["ChatGPT", "https://chatgpt.com/cdn-cgi/trace", "trace"]]}, "GPT_BLOCKED": {"CN": "中国大陆", "HK": "中国香港", "MO": "中国澳门"}, "GPT_TEXT": {"ok": "出口不在中国大陆、香港或澳门，可以使用（机房也可以）", "bad": "出口在{place}：OpenAI 不对中国大陆、香港和澳门提供服务，ChatGPT 用不了", "unknown": "数据源没有给出出口所在国家 / 地区，无法判断", "down": "没有取到 ChatGPT 的出口（💬 ChatGPT 的家宽和机房节点都不可用，或网络不通）"}};
+const T = {"KEY_ZH": {"ip": "IP 地址", "hostname": "反向解析", "city": "城市", "city_name": "城市", "region": "地区/省份", "region_name": "地区/省份", "state": "州/省", "country": "国家", "country_code": "国家代码", "country_name": "国家", "country_capital": "首都", "loc": "经纬度", "latitude": "纬度", "longitude": "经度", "lat": "纬度", "lon": "经度", "time_zone": "时区", "org": "组织 / ASN", "postal": "邮编", "zip": "邮编", "zip_code": "邮编", "timezone": "时区", "local_time": "当地时间", "local_time_unix": "当地时间戳", "is_dst": "是否夏令时", "calling_code": "国家区号", "currency_code": "货币", "continent": "大洲", "continent_code": "大洲代码", "domain": "域名", "isp": "服务商", "usage_type": "用途分类", "net_speed": "网速等级", "as": "ASN", "asname": "ASN 名称", "asn": "ASN 编号", "route": "路由前缀", "descr": "ASN 描述", "active": "是否活跃", "type": "类型", "abuser_score": "滥用评分", "created": "创建时间", "updated": "更新时间", "rir": "区域互联网注册机构", "name": "名称", "network": "网段", "is_eu_member": "是否欧盟", "accuracy_radius": "定位精度（公里）", "is_bogon": "是否保留段", "is_mobile": "是否移动网络", "is_satellite": "是否卫星网络", "is_crawler": "是否爬虫", "is_datacenter": "是否数据中心", "is_tor": "是否 Tor 出口", "is_proxy": "是否代理", "is_vpn": "是否 VPN", "is_abuser": "是否滥用源", "is_anycast": "是否任播", "fraud_score": "欺诈评分", "risk": "风险评分", "url": "源链接", "version": "IP 版本", "ip_version": "IP 版本", "elapsed_ms": "查询耗时（毫秒）", "company": "公司", "location": "位置", "abuse": "滥用举报", "datacenter": "数据中心信息", "vpn": "VPN", "proxy": "代理", "hosting": "机房托管", "mobile": "移动网络", "address": "地址", "email": "邮箱", "phone": "电话", "provider": "服务商", "organisation": "组织", "isocode": "国家代码", "countryCode": "国家代码", "regionName": "地区/省份", "regioncode": "地区代码", "continentcode": "大洲代码", "postcode": "邮编", "range": "网段范围", "currency": "货币", "code": "代码", "symbol": "符号", "devices": "关联设备数", "subnet": "同网段", "operator": "VPN 运营方", "anonymity": "匿名度", "popularity": "知名度", "protocols": "协议", "message": "说明", "privacy": "隐私标记", "is_anonymous": "是否匿名", "is_hosting": "是否机房托管", "is_icloud_relay": "是否 iCloud 私有中继", "is_eu": "是否欧盟", "netname": "网络名", "postal_code": "邮编", "zipcode": "邮编", "subdivision": "行政区", "risk_score": "风险评分"}, "NET_TYPE_ZH": {"residential": "住宅宽带", "wireless": "移动网络", "business": "企业网络", "hosting": "机房托管", "isp": "ISP 宽带", "education": "教育网", "government": "政府网络", "banking": "金融机构", "vpn": "VPN", "tor": "Tor", "socks": "SOCKS 代理", "socks4": "SOCKS4 代理", "socks5": "SOCKS5 代理", "http": "HTTP 代理", "https": "HTTPS 代理", "compromised server": "被入侵服务器", "inference engine": "推断为代理", "openvpn": "OpenVPN", "whitelisted": "白名单"}, "COUNTRY_ZH": {"US": "美国", "CN": "中国", "HK": "中国香港", "TW": "中国台湾", "MO": "中国澳门", "JP": "日本", "KR": "韩国", "SG": "新加坡", "MY": "马来西亚", "TH": "泰国", "VN": "越南", "PH": "菲律宾", "ID": "印度尼西亚", "IN": "印度", "PK": "巴基斯坦", "AE": "阿联酋", "SA": "沙特", "IL": "以色列", "TR": "土耳其", "DE": "德国", "GB": "英国", "UK": "英国", "FR": "法国", "IT": "意大利", "ES": "西班牙", "NL": "荷兰", "BE": "比利时", "CH": "瑞士", "AT": "奥地利", "SE": "瑞典", "NO": "挪威", "FI": "芬兰", "DK": "丹麦", "IE": "爱尔兰", "PT": "葡萄牙", "PL": "波兰", "UA": "乌克兰", "RU": "俄罗斯", "CZ": "捷克", "HU": "匈牙利", "RO": "罗马尼亚", "CA": "加拿大", "MX": "墨西哥", "BR": "巴西", "AR": "阿根廷", "CL": "智利", "CO": "哥伦比亚", "AU": "澳大利亚", "NZ": "新西兰", "ZA": "南非", "EG": "埃及", "NG": "尼日利亚", "KE": "肯尼亚"}, "RISK_LEVEL_ZH": {"very high risk": "极高风险", "high risk": "高风险", "medium risk": "中风险", "low risk": "低风险", "very low risk": "极低风险"}, "USAGE_TYPE_ZH": {"ISP": "ISP 互联网服务商", "ISP/MOB": "ISP / 移动网络", "MOB": "移动网络", "DCH": "数据中心 / 主机商", "COM": "商业 / 公司", "EDU": "教育机构", "GOV": "政府机构", "MIL": "军事", "LIB": "图书馆", "ORG": "组织机构", "RSV": "保留地址", "BNK": "银行 / 金融", "ASP": "应用服务商", "CDN": "内容分发网络", "FIN": "金融", "GEN": "通用", "SES": "搜索引擎"}, "CONTINENT_ZH": {"AS": "亚洲", "EU": "欧洲", "NA": "北美洲", "SA": "南美洲", "AF": "非洲", "OC": "大洋洲", "AN": "南极洲"}, "ANTIBOT_SITES": [["ping0.cc", "https://ping0.cc/ip/{ip}", "国内常用 · IP 纯净度评分"], ["IPLark", "https://iplark.com/check", "一键多源检测"], ["IP 检测", "https://www.ipjiance.com", "国内综合查询"], ["Whoer", "https://whoer.net/zh", "匿名度评估"], ["Scamalytics", "https://scamalytics.com/ip/{ip}", "欺诈评分官网"], ["AbuseIPDB", "https://www.abuseipdb.com/check/{ip}", "全球滥用举报库"], ["iprisk.top", "https://iprisk.top", "聚合检测（一次多源）"], ["IP2Location 网页版", "https://www.ip2location.com/{ip}", "详细地理 / 服务商 / 用途"]], "RISK_FIELDS": ["hosting", "is_abuser", "is_anonymous", "is_bogon", "is_crawler", "is_datacenter", "is_hosting", "is_proxy", "is_tor", "is_vpn", "proxy", "vpn"], "DIMENSIONS": [["vpn", "VPN 节点", "risk"], ["proxy", "代理 IP", "critical"], ["anon", "匿名标记", "risk"], ["datacenter", "数据中心", "risk"], ["tor", "Tor 出口", "critical"], ["abuser", "滥用源", "critical"], ["crawler", "爬虫 Bot", "risk"], ["mobile", "移动网络", "info"]], "LINES": [{"id": "ai", "name": "Claude", "title": "Claude", "group": "🤖 AI 专用", "expect": "", "speed": null, "echo": [["Claude", "https://claude.ai/cdn-cgi/trace", "trace"]]}, {"id": "video", "name": "YouTube / Telegram", "title": "YouTube / Telegram", "group": "📺 影音高速", "expect": "", "speed": {"trace": null, "ping": "https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg", "ping_method": "HEAD", "down": ["https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", "https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg", "https://i.ytimg.com/vi/9bZkp7q19f0/maxresdefault.jpg", "https://i.ytimg.com/vi/RgKAFK5djSk/maxresdefault.jpg", "https://i.ytimg.com/vi/OPf0YbXqDm0/maxresdefault.jpg", "https://i.ytimg.com/vi/fRh_vgS2dFE/maxresdefault.jpg", "https://i.ytimg.com/vi/CevxZvSJLk8/maxresdefault.jpg", "https://i.ytimg.com/vi/hT_nvWreIhg/maxresdefault.jpg", "https://i.ytimg.com/vi/YQHsXMglC9A/maxresdefault.jpg", "https://i.ytimg.com/vi/60ItHLz5WEA/maxresdefault.jpg", "https://i.ytimg.com/vi/pRpeEdMmmQ0/maxresdefault.jpg", "https://i.ytimg.com/vi/e-ORhEE9VVg/maxresdefault.jpg", "https://i.ytimg.com/vi/lp-EO5I60KA/maxresdefault.jpg", "https://i.ytimg.com/vi/kffacxfA7G4/maxresdefault.jpg", "https://i.ytimg.com/vi/09R8_2nJtjg/maxresdefault.jpg", "https://i.ytimg.com/vi/nfWlot6h_JM/maxresdefault.jpg", "https://i.ytimg.com/vi/7wtfhZwyrcc/maxresdefault.jpg", "https://i.ytimg.com/vi/ru0K8uYEZWw/maxresdefault.jpg"], "streams": 12}, "echo": [["ipv4.icanhazip.com", "https://ipv4.icanhazip.com/", "plain"], ["4.icanhazip.com", "https://4.icanhazip.com/", "plain"], ["get.geojs.io", "https://get.geojs.io/v1/ip/geo.json", "json-ip"]]}, {"id": "tiktok", "name": "TikTok", "title": "TikTok", "group": "🎵 TikTok", "expect": "JP", "speed": {"trace": null, "ping": "https://sf16-va.tiktokcdn.com/obj/eden-va2/plduptuloz/download/apk_new_7.mp4", "ping_method": "HEAD", "down": ["https://sf16-va.tiktokcdn.com/obj/eden-va2/plduptuloz/download/apk_new_7.mp4", "https://sf16-va.tiktokcdn.com/obj/eden-va2/plduptuloz/download/apk_new_8.mp4"], "streams": 2}, "echo": [["ipv4.wtfismyip.com", "https://ipv4.wtfismyip.com/text", "plain"], ["ipv4.myip.wtf", "https://ipv4.myip.wtf/text", "plain"], ["ident.me", "https://ident.me/", "plain"]]}, {"id": "other", "name": "其他外网", "title": "Google、普通网页", "group": "🌍 国外网站", "expect": "", "speed": {"trace": "https://speed.cloudflare.com/cdn-cgi/trace", "ping": "https://speed.cloudflare.com/__down?bytes=0", "ping_method": "GET", "down": ["https://speed.cloudflare.com/__down?bytes=25000000"], "streams": 2}, "echo": [["4.ident.me", "https://4.ident.me/", "plain"], ["v4.ident.me", "https://v4.ident.me/", "plain"], ["checkip.amazonaws.com", "https://checkip.amazonaws.com/", "plain"], ["icanhazip.com", "https://icanhazip.com/", "plain"]]}], "SPEED": {"seconds": 3, "max_bytes": 7000000, "pings": 4, "fast_mbps": 25, "ok_mbps": 10, "min_mbps": 5, "fast_ms": 150, "ok_ms": 300}, "CLEAN_MAX_SCORE": 10, "AI_DOWN": {"title": "Claude 线路不通", "text": "家宽线路全部不可用时，配置按设计直接断开，不会改走别的出口；这时打开 Claude 也会连不上，等家宽恢复即可"}, "CHATGPT_LINE": {"id": "chatgpt", "name": "ChatGPT", "group": "💬 ChatGPT", "expect": "", "echo": [["ChatGPT", "https://chatgpt.com/cdn-cgi/trace", "trace"]]}, "GPT_BLOCKED": {"CN": "中国大陆", "HK": "中国香港", "MO": "中国澳门"}, "GPT_TEXT": {"ok": "出口不在中国大陆、香港或澳门，可以使用（机房也可以）", "bad": "出口在{place}：OpenAI 不对中国大陆、香港和澳门提供服务，ChatGPT 用不了", "unknown": "数据源没有给出出口所在国家 / 地区，无法判断", "down": "没有取到 ChatGPT 的出口（💬 ChatGPT 的家宽和机房节点都不可用，或网络不通）"}};
 
 const KEY_ZH = Object.assign({}, T.KEY_ZH, {
   // freeipapi 的驼峰字段名
@@ -409,11 +409,12 @@ const ipapiKey = () => String(store.get("ipapi_key", "") || "").trim();
 // ───────── 网络请求 ─────────
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function fetchText(url) {
+/** 单个请求（带时限），返回响应体文本；method 默认 GET，HEAD 没有响应体、返回空串。非 2xx 抛错。 */
+async function fetchText(url, method = "GET") {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), TIMEOUT);
   try {
-    const r = await fetch(url, { cache: "no-store", credentials: "omit", signal: ac.signal });
+    const r = await fetch(url, { method, cache: "no-store", credentials: "omit", signal: ac.signal });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.text();
   } catch (e) {
@@ -472,7 +473,7 @@ const PARSE = {
 // 且允许跨域读取；同一组的域名在分流规则里走同一条线路（cloudflare.com → 🌍；openai.com、chatgpt.com → 💬 ChatGPT；
 // anthropic.com、claude.ai → 🤖 AI 专用），换域名不会换线路。
 const TRACE_POOLS = {
-  // speed.cloudflare.com 10-26 起是视频线路的测速域名（走 📺），不能放在这里
+  // speed.cloudflare.com 是其他外网线路的测速域名（同样落到兜底 🌍），留给测速自己建连接，不放在这里
   default: ["www.cloudflare.com", "dash.cloudflare.com", "developers.cloudflare.com",
             "radar.cloudflare.com", "workers.cloudflare.com", "pages.cloudflare.com", "api.cloudflare.com",
             "support.cloudflare.com", "community.cloudflare.com", "one.dash.cloudflare.com", "cloudflare.com"],
@@ -523,31 +524,52 @@ const LINE_POOLS = Object.fromEntries(LINES.slice(1).map(l =>
   [l.id, l.id === "other" ? l.echo.concat(tracePool(TRACE_POOLS.default)) : l.echo]));
 
 // ───────── 测速（10-26）─────────
-// 视频、TikTok、其他外网三条线路各有一个专用测速域名（线路表的 speed，unified.yaml 的「2c」段把它们路由到对应策略组），
-// 都在 Cloudflare 上、允许跨域读取。先取测速域名 /cdn-cgi/trace 看到的出口（顺便建好连接），
-// 再在这条连接上发几个小请求取中位数当延迟，最后并发下载 SPEED.seconds 秒或 SPEED.max_bytes 字节算带宽。
-// 三条线路依次测、不同时测，免得互相抢带宽；出口和这条线路回显到的不一样时，报告里提示（配置没更新或沿用了旧连接）。
+// 视频、TikTok、其他外网三条线路各测各的（线路表的 speed），只用现有分流规则本来就会走到这条线路的地址，
+// 而且就是这些服务自己的 CDN：视频测 YouTube 的图片服务器 i.ytimg.com（→ 📺 影音高速），TikTok 测它自己的
+// sf16-va.tiktokcdn.com（→ 🎵 TikTok），其他外网测 speed.cloudflare.com（落到兜底 → 🌍），都允许跨域读取。
+// 有 trace 的（只有 Cloudflare）先取测速连接看到的出口（顺便建好连接），没有的先发一次 ping 预热（不计入）；
+// 再在这条连接上发几个小请求（HEAD 或 GET）取中位数当延迟，最后 streams 路并发下载 SPEED.seconds 秒或
+// SPEED.max_bytes 字节算带宽。三条线路依次测、不同时测，免得互相抢带宽；有 trace 的线路出口和回显到的不一样时，
+// 报告里提示（多半沿用了切换节点前的旧连接）。
 const median = xs => {
   const s = [...xs].sort((a, b) => a - b), m = s.length >> 1;
   return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : null;
 };
+// 测速域名：有 trace 用 trace 的，没有用 ping 的（线路表里同一主机）
+const speedHost = sp => hostOf(sp.trace || sp.ping);
 
-/** 下载测带宽：streams 路并发重复下载 url，从第一块数据到达时起计时（这一块不计入），
- *  到时间或字节数上限就中止。返回 {mbps, bytes}；数据太少算不出时抛错。 */
-async function download(url) {
+/** 下载测带宽：streams 路并发，各路从 urls 里轮流取下一个地址（共享一个递增下标）下载；某个地址回非 2xx
+ *  就记下、以后都跳过它，换下一个，不让整路失败。从第一块数据到达时起计时（这一块不计入），
+ *  到时间或字节数上限就中止。返回 {mbps, bytes}；数据太少算不出时抛错（全部地址都失败时报最后一个 HTTP 状态）。 */
+async function download(urls, streams) {
   const ac = new AbortController();
   const guard = setTimeout(() => ac.abort(), SPEED.seconds * 1000 + TIMEOUT);
-  let bytes = 0, t0 = null, t1 = null;
+  let bytes = 0, t0 = null, t1 = null, next = 0, httpErr = null;
+  const bad = new Set(); // 回过非 2xx 的地址
+  const pick = () => {
+    for (let k = 0; k < urls.length; k++) {
+      const u = urls[next++ % urls.length];
+      if (!bad.has(u)) return u;
+    }
+    return null;
+  };
   const stream = async () => {
     while (!ac.signal.aborted) {
+      const url = pick();
+      if (url === null) throw httpErr || new Error("没有可用的下载地址");
       const r = await fetch(url, { cache: "no-store", credentials: "omit", signal: ac.signal });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        bad.add(url);
+        httpErr = new Error(`HTTP ${r.status}`);
+        if (r.body) r.body.cancel().catch(() => { /* 出错的响应体不读了 */ });
+        continue;
+      }
       if (!r.body || !r.body.getReader) throw new Error("浏览器不支持流式读取");
       const reader = r.body.getReader();
       try {
         for (;;) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) break; // 这个地址下完了，接着下下一个
           const now = performance.now();
           if (t0 === null) { t0 = now; continue; }
           bytes += value.byteLength;
@@ -559,7 +581,7 @@ async function download(url) {
       }
     }
   };
-  const rs = await Promise.allSettled(Array.from({ length: SPEED.streams }, stream));
+  const rs = await Promise.allSettled(Array.from({ length: streams }, stream));
   clearTimeout(guard);
   if (t0 === null || t1 === null || t1 - t0 < 100 || bytes < 100000) {
     const err = rs.map(r => r.reason).find(e => e && e.name !== "AbortError");
@@ -569,11 +591,13 @@ async function download(url) {
   return { mbps: bytes * 8 / ((t1 - t0) / 1000) / 1e6, bytes };
 }
 
-/** 一条线路的测速：{host, ip（测速连接的出口）, ms, mbps, bytes, error}。 */
+/** 一条线路的测速：{host, ip（测速连接的出口；没有 trace 的线路为 null）, ms, mbps, bytes, error}。
+ *  第一次请求（trace 或预热）失败就不再往下测，和桌面版 speed_test 一样。 */
 async function speedTest(sp) {
-  const out = { host: hostOf(sp.trace), ip: null, ms: null, mbps: null, bytes: 0, error: null };
+  const out = { host: speedHost(sp), ip: null, ms: null, mbps: null, bytes: 0, error: null };
   try {
-    out.ip = parseTrace(await fetchText(sp.trace));
+    if (sp.trace) out.ip = parseTrace(await fetchText(sp.trace));
+    else await fetchText(sp.ping, sp.ping_method); // 预热：只为建好连接，不计入延迟
   } catch (e) {
     out.error = e.message;
     return out;
@@ -581,10 +605,10 @@ async function speedTest(sp) {
   const samples = [];
   for (let i = 0; i < SPEED.pings; i++) {
     const t = performance.now();
-    try { await fetchText(sp.ping); samples.push(performance.now() - t); } catch (e) { /* 少一个样本 */ }
+    try { await fetchText(sp.ping, sp.ping_method); samples.push(performance.now() - t); } catch (e) { /* 少一个样本 */ }
   }
   out.ms = median(samples);
-  try { Object.assign(out, await download(sp.down)); } catch (e) { out.error = e.message; }
+  try { Object.assign(out, await download(sp.down, sp.streams)); } catch (e) { out.error = e.message; }
   return out;
 }
 
@@ -687,7 +711,7 @@ async function runAll(log, force) {
     await Promise.all(lineJobs);
     for (const l of LINES) {
       if (!l.speed) continue;
-      speed[l.id] = { host: hostOf(l.speed.trace), ip: null, ms: null, mbps: null, bytes: 0, error: null, pending: true };
+      speed[l.id] = { host: speedHost(l.speed), ip: null, ms: null, mbps: null, bytes: 0, error: null, pending: true };
       const r = await speedTest(l.speed);
       speed[l.id] = r;
       const g = speedGrade(r.ms, r.mbps);
@@ -735,7 +759,7 @@ async function runAll(log, force) {
   for (const l of LINES) {
     if (!l.speed) continue;
     const sp = speed[l.id];
-    if (!sp) speed[l.id] = { host: hostOf(l.speed.trace), ip: null, ms: null, mbps: null, bytes: 0, error: "没来得及测" };
+    if (!sp) speed[l.id] = { host: speedHost(l.speed), ip: null, ms: null, mbps: null, bytes: 0, error: "没来得及测" };
     else if (sp.pending) speed[l.id] = { ...sp, pending: false, error: late().message };
   }
   const seen = name => (typeof routes[name] === "string" ? routes[name] : null);
@@ -1389,7 +1413,7 @@ function lineVerdicts(ip, main, lines, extra) {
   return { lines: out, byIp };
 }
 
-/** 视频媒体 / 其他外网里的一行：线路名、地区、延迟、带宽、评级，下面是提示（同出口、地区不符、测速没走这条线路）。 */
+/** 视频媒体 / 其他外网里的一行：线路名、地区、延迟、带宽、评级，下面是提示（同出口、地区不符、测速出口和回显不一致）。 */
 function renderSpeedRow(l, info, meta, v, sp) {
   const gr = speedGrade(sp ? sp.ms : null, sp ? sp.mbps : null);
   const cc = v ? countryCode(v.src) : null;
@@ -1398,9 +1422,9 @@ function renderSpeedRow(l, info, meta, v, sp) {
   const notes = [];
   if (!meta.ip) notes.push(["warn", `没取到这条线路的出口：${meta.error || "回显服务不可达"}`]);
   for (const t of info.notes) notes.push([info.level === "warn" ? "warn" : "info", t]);
-  if (sp && sp.ip && meta.ip && sp.ip !== meta.ip) {
-    notes.push(["warn", "测速连接走的出口和这条线路不一样，测速结果不代表这条线路：手机上的代理配置可能还没更新"
-      + "（更新配置后关开一次连接），或沿用了切换节点前的旧连接（把本页从后台划掉重开）"]);
+  // 只有带 trace 的线路（其他外网）知道测速连接的出口，才核对；视频、TikTok 的测速地址没有 trace
+  if (l.speed && l.speed.trace && sp && sp.ip && meta.ip && sp.ip !== meta.ip) {
+    notes.push(["warn", "测速时这条线路的出口和回显到的不一样：可能沿用了切换节点前的旧连接（把本页从后台划掉重开），测速结果仅供参考"]);
   }
   if (sp && sp.error) notes.push([gr.state === "unknown" ? "warn" : "info", `${gr.state === "unknown" ? "测速失败" : "部分测速失败"}：${sp.error}`]);
   const val = (x, text) => (num(x) === null ? '<div class="sp-v none">—</div>'
@@ -1530,7 +1554,8 @@ function buildReport(run, runNo) {
   const meta = `<div class="run-meta">检测时间 ${esc(fmtTime(now, true))} · 本页第 ${runNo} 次检测</div>`;
   const lineTable = '<div class="more-h">各线路的出口与测速<span class="st-hint">（回显域名、出口判定、测速域名）</span></div>'
     + renderLineTable(lines, lv, speed);
-  const tail = '<div class="more-note" style="margin-top:10px">每条线路的测速域名由分流规则指到对应策略组，延迟是同一条连接上几次小请求的中位数，'
+  const tail = '<div class="more-note" style="margin-top:10px">视频线路测 YouTube 自己的图片服务器（i.ytimg.com），TikTok 线路测 TikTok 自己的 CDN，'
+    + "其他外网用 Cloudflare 测速，都按现有分流规则走各自线路；延迟是同一条连接上几次小请求的中位数，"
     + `带宽是并发下载最多 ${SPEED.seconds} 秒或 ${Math.round(SPEED.max_bytes / 1e6)} MB 的平均速度。手机网页读不到代理 App 里的节点名，只显示检测结果。</div>`
     + `<details class="raw"><summary>原始 JSON</summary><pre>${esc(raw)}</pre></details>`
     + "</div></details>";
