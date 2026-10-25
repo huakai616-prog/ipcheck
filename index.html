@@ -5,7 +5,7 @@
 <title>IP 体检</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta name="description" content="在手机浏览器里分线路检测出口 IP 的纯净度：Claude、ChatGPT、视频、TikTok、其他外网，多数据源交叉验证、历史对比。">
+<meta name="description" content="在手机浏览器里看 AI 出口是否绝对干净（多数据源交叉验证），视频、TikTok、其他外网线路的延迟和带宽。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -64,7 +64,7 @@ body {
   font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
 }
 a { color: var(--blue-ink); }
-.mono, .hero-ip, .rt-ip { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace; }
+.mono { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace; }
 
 /* ─── 背景：几团柔边色块，给毛玻璃透出颜色 ───
    用径向渐变画柔边，不用 filter: blur：大面积模糊滤镜在 iPhone 上滚动时很吃 GPU */
@@ -78,7 +78,7 @@ a { color: var(--blue-ink); }
 .bg i:nth-child(4) { color: var(--b4); top: calc(52vh - 16vmax); right: -38vmax; width: 84vmax; height: 84vmax; }
 
 /* ─── 毛玻璃卡片：只给顶层几块，折叠区里面的内容用普通浅底 ─── */
-.hero, .progress, .fatal, .rt-list, .ln-card, .ln-banner, .diag-box, details.settings, details.more {
+.blk, .progress, .fatal, .diag-box, details.settings, details.more {
   background: var(--glass);
   -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   border: 1px solid var(--edge); border-radius: 22px;
@@ -89,7 +89,7 @@ a { color: var(--blue-ink); }
   @media (prefers-color-scheme: dark) { :root { --glass: rgba(34,36,46,.94); } }
 }
 /* iOS 风格的内缩分隔线 */
-.rt-row + .rt-row, .ex-row {
+.ex-row {
   background-image: linear-gradient(var(--sep), var(--sep));
   background-size: calc(100% - 18px) 1px; background-position: right top; background-repeat: no-repeat;
 }
@@ -126,50 +126,46 @@ a { color: var(--blue-ink); }
   background: linear-gradient(var(--red-tint), var(--red-tint)), var(--glass); }
 .fatal .diag-body { color: var(--label2); font-weight: 400; margin-top: 6px; }
 
-/* ─── 主卡片 ─── */
-.hero { padding: 22px 22px 18px; }
-.hero-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-.hero-ip-block { flex: 1 1 auto; min-width: 0; }
-.hero-label { font-size: 13px; color: var(--label2); font-weight: 500; }
-.hero-ip-down { color: var(--orange-ink) !important; font-size: 24px !important; letter-spacing: 0 !important; }
-.hero-ip { font-size: 36px; font-weight: 600; letter-spacing: -.5px; word-break: break-all; margin-top: 2px; line-height: 1.2; }
-.hero-score-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.ring { --c: var(--gray); --p: 0; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center;
-  background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--sep) 0); }
-.ring.v-ok { --c: var(--green); } .ring.v-warn { --c: var(--orange); } .ring.v-bad { --c: var(--red); }
-.ring-in { width: 70px; height: 70px; border-radius: 50%; background: var(--glass-strong); display: grid; place-content: center; text-align: center; }
-.hero-score { font-size: 26px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-.hero-score.v-ok { color: var(--green-ink); } .hero-score.v-warn { color: var(--orange-ink); }
-.hero-score.v-bad { color: var(--red-ink); } .hero-score.v-unk { color: var(--gray-ink); }
-.ring-cap { font-size: 10px; color: var(--label3); margin-top: 3px; }
-.hero-verdict {
-  margin-top: 18px; padding: 13px 16px; border-radius: 16px;
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-}
-.hero-verdict.v-ok { background: var(--green-tint); color: var(--green-ink); }
-.hero-verdict.v-warn { background: var(--orange-tint); color: var(--orange-ink); }
-.hero-verdict.v-bad { background: var(--red-tint); color: var(--red-ink); }
-.hero-verdict.v-unk { background: var(--gray-tint); color: var(--gray-ink); }
-.v-mark { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
-  color: #fff; font-size: 15px; font-weight: 700; background: var(--gray); }
+/* ─── 首屏三块：AI 出口 / 视频媒体 / 其他外网（10-26 简化）─── */
+.blk { padding: 18px 20px 16px; margin-bottom: 14px; }
+.blk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 2px 12px; }
+.blk-title { font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+.blk-hint { font-size: 12px; color: var(--label3); text-align: right; }
+
+/* AI 出口：大结论 + 四项检查 */
+.ai-status { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; }
+.ai-status.v-ok { background: var(--green-tint); color: var(--green-ink); }
+.ai-status.v-warn { background: var(--orange-tint); color: var(--orange-ink); }
+.ai-status.v-bad { background: var(--red-tint); color: var(--red-ink); }
+.ai-status.v-unk { background: var(--gray-tint); color: var(--gray-ink); }
+.v-mark { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  color: #fff; font-size: 18px; font-weight: 700; background: var(--gray); }
 .v-ok .v-mark { background: var(--green); } .v-warn .v-mark { background: var(--orange); } .v-bad .v-mark { background: var(--red); }
-.v-level { font-size: 18px; font-weight: 700; }
-.v-sep { display: none; }
-.v-sentence { font-size: 15px; font-weight: 500; color: var(--label); opacity: .85; }
+.v-level { font-size: 22px; font-weight: 700; line-height: 1.25; }
+.v-sentence { font-size: 14px; font-weight: 500; color: var(--label); opacity: .82; margin-top: 1px; }
+.chk-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.chk { display: grid; grid-template-columns: 22px auto minmax(0, 1fr); gap: 1px 10px; align-items: baseline; padding: 10px 2px; }
+.chk + .chk { border-top: 1px solid var(--sep); }
+.chk-mark { font-size: 15px; font-weight: 800; text-align: center; }
+.chk-label { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.chk-text { font-size: 13px; color: var(--label2); text-align: right; overflow-wrap: anywhere; }
+.c-ok .chk-mark { color: var(--green-ink); } .c-warn .chk-mark, .c-warn .chk-text { color: var(--orange-ink); }
+.c-bad .chk-mark, .c-bad .chk-text { color: var(--red-ink); } .c-unk .chk-mark { color: var(--gray-ink); }
+.ai-exit { margin-top: 4px; padding: 12px 2px 0; border-top: 1px solid var(--sep); font-size: 13px; color: var(--label2); overflow-wrap: anywhere; }
+.ai-exit .mono { font-size: 15px; font-weight: 600; color: var(--label); margin-right: 4px; }
+.ai-down-text { margin-top: 12px; font-size: 14px; color: var(--label2); line-height: 1.7; }
+.gpt-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; margin-top: 12px; padding: 11px 14px;
+  border-radius: 14px; background: var(--tile); font-size: 14px; }
+.gpt-name { font-weight: 700; }
+.gpt-state { font-weight: 700; } .gpt-state.v-ok { color: var(--green-ink); } .gpt-state.v-bad { color: var(--red-ink); }
+.gpt-state.v-unk { color: var(--gray-ink); }
+.gpt-det { color: var(--label2); font-size: 13px; overflow-wrap: anywhere; }
+.gpt-note { flex-basis: 100%; font-size: 12px; color: var(--label3); }
+.gpt-row.gpt-bad { background: var(--red-tint); }
 .relay { margin-top: 12px; padding: 11px 14px; border-radius: 14px; background: var(--orange-tint); color: var(--orange-ink); font-size: 13px; line-height: 1.65; }
-.hero-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--sep); }
-.hm-k { font-size: 12px; color: var(--label2); }
-.hm-v { font-size: 15px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
 
-/* 可信度：用中性的蓝色圆点，不用红绿，免得和结论颜色打架 */
-.conf { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: var(--label2); }
-.conf-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--blue-ink);
-  background: var(--blue-tint); padding: 3px 11px 3px 9px; border-radius: 999px; }
-.conf-dots { letter-spacing: 1px; font-size: 9px; }
-.conf-dots .off { opacity: .28; }
-
-/* ─── 评分依据（主卡片里展开）─── */
-details.why { margin-top: 16px; border-top: 1px solid var(--sep); }
+/* ─── 评分依据（AI 出口里展开）─── */
+details.why { margin-top: 14px; border-top: 1px solid var(--sep); }
 details.why > summary { padding: 13px 2px 0; font-size: 15px; }
 details.why > summary .sum-hint { font-size: 12px; font-weight: 400; color: var(--label3); margin-left: auto; margin-right: 8px; }
 .why-body { padding: 10px 0 0; }
@@ -195,56 +191,36 @@ details.why > summary .sum-hint { font-size: 12px; font-weight: 400; color: var(
 .src-agree .sa-name { flex: none; font-weight: 600; min-width: 76px; }
 .src-agree .sa-txt { color: var(--label2); overflow-wrap: anywhere; }
 
-/* ─── 区段标题 ─── */
-.section-title { font-size: 21px; font-weight: 700; margin: 30px 6px 10px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.section-title .st-hint { font-size: 13px; font-weight: 400; color: var(--label3); text-align: right; }
+/* ─── 视频媒体 / 其他外网：每条线路一行，延迟、带宽、评级 ─── */
+.sp-row { display: grid; grid-template-columns: minmax(0, 1.6fr) 96px 112px minmax(110px, 1fr);
+  grid-template-areas: "name lat bw grade" "notes notes notes notes"; gap: 2px 14px; align-items: center; padding: 12px 2px; }
+.sp-row + .sp-row { border-top: 1px solid var(--sep); }
+.sp-name { grid-area: name; min-width: 0; } .sp-lat { grid-area: lat; } .sp-bw { grid-area: bw; }
+.sp-grade { grid-area: grade; } .sp-notes { grid-area: notes; }
+.sp-title { font-size: 16px; font-weight: 700; }
+.sp-sub { font-size: 12px; color: var(--label3); margin-top: 1px; overflow-wrap: anywhere; }
+.sp-v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; white-space: nowrap; }
+.sp-v small { font-size: 12px; font-weight: 600; color: var(--label2); margin-left: 3px; }
+.sp-v.none { color: var(--label3); }
+.sp-k { font-size: 11px; color: var(--label3); margin-top: 1px; }
+.sp-grade { justify-self: end; text-align: right; padding: 7px 12px; border-radius: 13px; font-size: 16px; font-weight: 700; line-height: 1.3; }
+.sp-grade span { display: block; font-size: 11px; font-weight: 500; opacity: .9; }
+.g-fast { background: var(--green-tint); color: var(--green-ink); } .g-ok { background: var(--orange-tint); color: var(--orange-ink); }
+.g-slow { background: var(--red-tint); color: var(--red-ink); } .g-unknown { background: var(--gray-tint); color: var(--gray-ink); }
+.sp-note { font-size: 12px; line-height: 1.6; margin-top: 4px; }
+.sp-note.n-warn { color: var(--orange-ink); font-weight: 600; } .sp-note.n-info { color: var(--label3); }
+.ln-banner { padding: 11px 14px; margin-bottom: 8px; border-radius: 14px; font-size: 13px; font-weight: 600; line-height: 1.65;
+  color: var(--orange-ink); background: var(--orange-tint); }
+.run-meta { text-align: center; font-size: 12px; color: var(--label3); margin: 2px 0 0; }
 
-/* ─── 分流出口 ─── */
-.rt-list { overflow: hidden; }
-.rt-row { display: grid; grid-template-columns: 140px 1fr 1.1fr; gap: 16px; align-items: start; padding: 14px 18px; }
-.rt-name { font-size: 16px; font-weight: 600; }
-.rt-ip { font-size: 15px; font-weight: 600; word-break: break-all; }
+/* 「详细数据」里的小字 */
 .rt-sub { font-size: 12px; color: var(--label2); font-weight: 400; margin-top: 3px;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif; }
-.rt-verdict b { font-size: 15px; }
-.rt-verdict.v-ok { color: var(--green-ink); } .rt-verdict.v-warn { color: var(--orange-ink); }
-.rt-verdict.v-bad { color: var(--red-ink); } .rt-verdict.v-unk { color: var(--gray-ink); }
-.rt-same { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 15px; }
-.rt-same .rt-name { flex: none; }
-.rt-same-txt { color: var(--label2); }
-
-/* ─── 主卡片里的 Claude 状态 ─── */
-.hero-lines { margin-top: 10px; font-size: 13px; color: var(--label2); }
-.hl-row { padding: 2px 0; }
-.hl-ok { color: var(--green-ink); font-weight: 600; } .hl-bad { color: var(--red-ink); font-weight: 600; }
-.hl-warn { color: var(--orange-ink); font-weight: 600; }
-
-/* ─── ChatGPT 小卡片：紧跟主卡片，只判出口在不在中国大陆 / 香港 / 澳门（机房也行）─── */
-.gpt-card { margin-top: 12px; }
-.gpt-card .ln-head { flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
-
-/* ─── 其他线路：三张毛玻璃卡片 ─── */
-.ln-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.ln-card { padding: 16px 18px; min-width: 0; }
-.ln-head { display: flex; flex-direction: column; gap: 1px; }
-.ln-name { font-size: 16px; font-weight: 700; }
-.ln-sub { font-size: 12px; color: var(--label3); }
-.ln-ip { font-size: 20px; font-weight: 600; margin-top: 10px; overflow-wrap: anywhere;
-  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace; }
-.ln-det { font-size: 12px; color: var(--label2); margin-top: 2px; overflow-wrap: anywhere; }
-.ln-verdict { margin-top: 10px; padding: 9px 12px; border-radius: 14px; font-size: 14px; }
-.ln-verdict.v-ok { background: var(--green-tint); color: var(--green-ink); }
-.ln-verdict.v-warn { background: var(--orange-tint); color: var(--orange-ink); }
-.ln-verdict.v-bad { background: var(--red-tint); color: var(--red-ink); }
-.ln-verdict.v-unk { background: var(--gray-tint); color: var(--gray-ink); }
-.ln-sentence { font-size: 12px; font-weight: 400; color: var(--label2); margin-top: 2px; }
-.ln-note { font-size: 12px; margin-top: 8px; line-height: 1.6; }
-.ln-note.n-warn { color: var(--orange-ink); font-weight: 600; } .ln-note.n-info { color: var(--label3); }
-.ln-banner { padding: 13px 16px; margin-bottom: 12px; font-size: 14px; font-weight: 600; line-height: 1.65; color: var(--orange-ink);
-  background: linear-gradient(var(--orange-tint), var(--orange-tint)), var(--glass); }
+.lv-ok { color: var(--green-ink); font-weight: 600; } .lv-warn { color: var(--orange-ink); font-weight: 600; }
+.lv-bad { color: var(--red-ink); font-weight: 600; } .lv-unk { color: var(--gray-ink); font-weight: 600; }
 
 /* ─── 历史对比 ─── */
-.diag-box { padding: 16px 18px; margin-top: 12px; }
+.diag-box { padding: 16px 18px; margin: 0 0 14px; }
 .diag-flat { background: var(--tile); border-radius: 16px; padding: 13px 15px; }
 .diag-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
 .diag-title::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
@@ -327,15 +303,10 @@ details.raw pre { margin: 0; padding: 0 15px 15px; font-size: 11px; overflow: au
   .rerun-btn { position: fixed; z-index: 99; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom));
     transform: translateX(-50%); padding: 14px 30px; font-size: 17px; }
   .rerun-btn:active { transform: translateX(-50%) scale(.96); }
-  .hero { padding: 20px 18px 16px; }
-  .hero-ip { font-size: 26px; }
-  .ring { width: 66px; height: 66px; } .ring-in { width: 54px; height: 54px; } .hero-score { font-size: 20px; } .ring-cap { font-size: 9px; }
-  .v-sentence { flex-basis: 100%; }
-  .hero-meta { grid-template-columns: 1fr 1fr; }
-  .section-title { flex-wrap: wrap; font-size: 20px; }
-  .rt-row { grid-template-columns: 1fr; gap: 6px; }
-  .ln-cards { grid-template-columns: 1fr; }
-  .rt-same { flex-wrap: wrap; row-gap: 2px; }
+  .blk { padding: 16px 16px 14px; }
+  .v-level { font-size: 20px; }
+  /* 手机上每行两层：名称 / 延迟 + 带宽，评级在右边占两层 */
+  .sp-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "name name grade" "lat bw grade" "notes notes notes"; gap: 8px 12px; }
   .more-body { padding: 0 8px 10px; }
   details.more > summary .sum-hint { display: none; }
   .ex-list { grid-template-columns: 1fr; }
@@ -352,7 +323,7 @@ details.raw pre { margin: 0; padding: 0 15px 15px; font-size: 11px; overflow: au
 <header class="topbar">
   <div>
     <h1 class="page-title">IP 体检</h1>
-    <div class="page-sub">分线路检测这台设备的出口 · 全部在本机浏览器里完成</div>
+    <div class="page-sub">AI 出口干不干净 · 视频线路快不快</div>
   </div>
   <button class="rerun-btn" id="rerun" type="button" disabled><span class="rr-icon">↻</span>重新检测</button>
 </header>
@@ -392,7 +363,7 @@ details.raw pre { margin: 0; padding: 0 15px 15px; font-size: 11px; overflow: au
 <script>
 "use strict";
 // 判定逻辑移植自 ~/bin/ipcheck.py；翻译表由 ipcheck_phone_build.py 从 ipcheck.py 注入
-const T = {"KEY_ZH": {"ip": "IP 地址", "hostname": "反向解析", "city": "城市", "city_name": "城市", "region": "地区/省份", "region_name": "地区/省份", "state": "州/省", "country": "国家", "country_code": "国家代码", "country_name": "国家", "country_capital": "首都", "loc": "经纬度", "latitude": "纬度", "longitude": "经度", "lat": "纬度", "lon": "经度", "time_zone": "时区", "org": "组织 / ASN", "postal": "邮编", "zip": "邮编", "zip_code": "邮编", "timezone": "时区", "local_time": "当地时间", "local_time_unix": "当地时间戳", "is_dst": "是否夏令时", "calling_code": "国家区号", "currency_code": "货币", "continent": "大洲", "continent_code": "大洲代码", "domain": "域名", "isp": "服务商", "usage_type": "用途分类", "net_speed": "网速等级", "as": "ASN", "asname": "ASN 名称", "asn": "ASN 编号", "route": "路由前缀", "descr": "ASN 描述", "active": "是否活跃", "type": "类型", "abuser_score": "滥用评分", "created": "创建时间", "updated": "更新时间", "rir": "区域互联网注册机构", "name": "名称", "network": "网段", "is_eu_member": "是否欧盟", "accuracy_radius": "定位精度（公里）", "is_bogon": "是否保留段", "is_mobile": "是否移动网络", "is_satellite": "是否卫星网络", "is_crawler": "是否爬虫", "is_datacenter": "是否数据中心", "is_tor": "是否 Tor 出口", "is_proxy": "是否代理", "is_vpn": "是否 VPN", "is_abuser": "是否滥用源", "is_anycast": "是否任播", "fraud_score": "欺诈评分", "risk": "风险评分", "url": "源链接", "version": "IP 版本", "ip_version": "IP 版本", "elapsed_ms": "查询耗时（毫秒）", "company": "公司", "location": "位置", "abuse": "滥用举报", "datacenter": "数据中心信息", "vpn": "VPN", "proxy": "代理", "hosting": "机房托管", "mobile": "移动网络", "address": "地址", "email": "邮箱", "phone": "电话", "provider": "服务商", "organisation": "组织", "isocode": "国家代码", "countryCode": "国家代码", "regionName": "地区/省份", "regioncode": "地区代码", "continentcode": "大洲代码", "postcode": "邮编", "range": "网段范围", "currency": "货币", "code": "代码", "symbol": "符号", "devices": "关联设备数", "subnet": "同网段", "operator": "VPN 运营方", "anonymity": "匿名度", "popularity": "知名度", "protocols": "协议", "message": "说明", "privacy": "隐私标记", "is_anonymous": "是否匿名", "is_hosting": "是否机房托管", "is_icloud_relay": "是否 iCloud 私有中继", "is_eu": "是否欧盟", "netname": "网络名", "postal_code": "邮编", "zipcode": "邮编", "subdivision": "行政区", "risk_score": "风险评分"}, "NET_TYPE_ZH": {"residential": "住宅宽带", "wireless": "移动网络", "business": "企业网络", "hosting": "机房托管", "isp": "ISP 宽带", "education": "教育网", "government": "政府网络", "banking": "金融机构", "vpn": "VPN", "tor": "Tor", "socks": "SOCKS 代理", "socks4": "SOCKS4 代理", "socks5": "SOCKS5 代理", "http": "HTTP 代理", "https": "HTTPS 代理", "compromised server": "被入侵服务器", "inference engine": "推断为代理", "openvpn": "OpenVPN", "whitelisted": "白名单"}, "COUNTRY_ZH": {"US": "美国", "CN": "中国", "HK": "中国香港", "TW": "中国台湾", "MO": "中国澳门", "JP": "日本", "KR": "韩国", "SG": "新加坡", "MY": "马来西亚", "TH": "泰国", "VN": "越南", "PH": "菲律宾", "ID": "印度尼西亚", "IN": "印度", "PK": "巴基斯坦", "AE": "阿联酋", "SA": "沙特", "IL": "以色列", "TR": "土耳其", "DE": "德国", "GB": "英国", "UK": "英国", "FR": "法国", "IT": "意大利", "ES": "西班牙", "NL": "荷兰", "BE": "比利时", "CH": "瑞士", "AT": "奥地利", "SE": "瑞典", "NO": "挪威", "FI": "芬兰", "DK": "丹麦", "IE": "爱尔兰", "PT": "葡萄牙", "PL": "波兰", "UA": "乌克兰", "RU": "俄罗斯", "CZ": "捷克", "HU": "匈牙利", "RO": "罗马尼亚", "CA": "加拿大", "MX": "墨西哥", "BR": "巴西", "AR": "阿根廷", "CL": "智利", "CO": "哥伦比亚", "AU": "澳大利亚", "NZ": "新西兰", "ZA": "南非", "EG": "埃及", "NG": "尼日利亚", "KE": "肯尼亚"}, "RISK_LEVEL_ZH": {"very high risk": "极高风险", "high risk": "高风险", "medium risk": "中风险", "low risk": "低风险", "very low risk": "极低风险"}, "USAGE_TYPE_ZH": {"ISP": "ISP 互联网服务商", "ISP/MOB": "ISP / 移动网络", "MOB": "移动网络", "DCH": "数据中心 / 主机商", "COM": "商业 / 公司", "EDU": "教育机构", "GOV": "政府机构", "MIL": "军事", "LIB": "图书馆", "ORG": "组织机构", "RSV": "保留地址", "BNK": "银行 / 金融", "ASP": "应用服务商", "CDN": "内容分发网络", "FIN": "金融", "GEN": "通用", "SES": "搜索引擎"}, "CONTINENT_ZH": {"AS": "亚洲", "EU": "欧洲", "NA": "北美洲", "SA": "南美洲", "AF": "非洲", "OC": "大洋洲", "AN": "南极洲"}, "ANTIBOT_SITES": [["ping0.cc", "https://ping0.cc/ip/{ip}", "国内常用 · IP 纯净度评分"], ["IPLark", "https://iplark.com/check", "一键多源检测"], ["IP 检测", "https://www.ipjiance.com", "国内综合查询"], ["Whoer", "https://whoer.net/zh", "匿名度评估"], ["Scamalytics", "https://scamalytics.com/ip/{ip}", "欺诈评分官网"], ["AbuseIPDB", "https://www.abuseipdb.com/check/{ip}", "全球滥用举报库"], ["iprisk.top", "https://iprisk.top", "聚合检测（一次多源）"], ["IP2Location 网页版", "https://www.ip2location.com/{ip}", "详细地理 / 服务商 / 用途"]], "RISK_FIELDS": ["hosting", "is_abuser", "is_anonymous", "is_bogon", "is_crawler", "is_datacenter", "is_hosting", "is_proxy", "is_tor", "is_vpn", "proxy", "vpn"], "DIMENSIONS": [["vpn", "VPN 节点", "risk"], ["proxy", "代理 IP", "critical"], ["anon", "匿名标记", "risk"], ["datacenter", "数据中心", "risk"], ["tor", "Tor 出口", "critical"], ["abuser", "滥用源", "critical"], ["crawler", "爬虫 Bot", "risk"], ["mobile", "移动网络", "info"]], "LINES": [{"id": "ai", "name": "Claude", "group": "🤖 AI 专用", "expect": "", "echo": [["Claude", "https://claude.ai/cdn-cgi/trace", "trace"]]}, {"id": "video", "name": "视频（YouTube / Telegram）", "group": "📺 影音高速", "expect": "HK", "echo": [["ipv4.icanhazip.com", "https://ipv4.icanhazip.com/", "plain"], ["4.icanhazip.com", "https://4.icanhazip.com/", "plain"], ["get.geojs.io", "https://get.geojs.io/v1/ip/geo.json", "json-ip"]]}, {"id": "tiktok", "name": "TikTok", "group": "🎵 TikTok", "expect": "JP", "echo": [["ipv4.wtfismyip.com", "https://ipv4.wtfismyip.com/text", "plain"], ["ipv4.myip.wtf", "https://ipv4.myip.wtf/text", "plain"], ["ident.me", "https://ident.me/", "plain"]]}, {"id": "other", "name": "其他外网", "group": "🌍 国外网站", "expect": "", "echo": [["4.ident.me", "https://4.ident.me/", "plain"], ["v4.ident.me", "https://v4.ident.me/", "plain"], ["checkip.amazonaws.com", "https://checkip.amazonaws.com/", "plain"], ["icanhazip.com", "https://icanhazip.com/", "plain"]]}], "AI_DOWN": {"title": "Claude 线路不通", "text": "家宽线路全部不可用时，配置按设计直接断开，不会改走别的出口；这时打开 Claude 也会连不上，等家宽恢复即可"}, "CHATGPT_LINE": {"id": "chatgpt", "name": "ChatGPT", "group": "💬 ChatGPT", "expect": "", "echo": [["ChatGPT", "https://chatgpt.com/cdn-cgi/trace", "trace"]]}, "GPT_BLOCKED": {"CN": "中国大陆", "HK": "中国香港", "MO": "中国澳门"}, "GPT_TEXT": {"ok": "出口不在中国大陆、香港或澳门，可以使用（机房也可以）", "bad": "出口在{place}：OpenAI 不对中国大陆、香港和澳门提供服务，ChatGPT 用不了", "unknown": "数据源没有给出出口所在国家 / 地区，无法判断", "down": "没有取到 ChatGPT 的出口（💬 ChatGPT 的家宽和机房节点都不可用，或网络不通）"}};
+const T = {"KEY_ZH": {"ip": "IP 地址", "hostname": "反向解析", "city": "城市", "city_name": "城市", "region": "地区/省份", "region_name": "地区/省份", "state": "州/省", "country": "国家", "country_code": "国家代码", "country_name": "国家", "country_capital": "首都", "loc": "经纬度", "latitude": "纬度", "longitude": "经度", "lat": "纬度", "lon": "经度", "time_zone": "时区", "org": "组织 / ASN", "postal": "邮编", "zip": "邮编", "zip_code": "邮编", "timezone": "时区", "local_time": "当地时间", "local_time_unix": "当地时间戳", "is_dst": "是否夏令时", "calling_code": "国家区号", "currency_code": "货币", "continent": "大洲", "continent_code": "大洲代码", "domain": "域名", "isp": "服务商", "usage_type": "用途分类", "net_speed": "网速等级", "as": "ASN", "asname": "ASN 名称", "asn": "ASN 编号", "route": "路由前缀", "descr": "ASN 描述", "active": "是否活跃", "type": "类型", "abuser_score": "滥用评分", "created": "创建时间", "updated": "更新时间", "rir": "区域互联网注册机构", "name": "名称", "network": "网段", "is_eu_member": "是否欧盟", "accuracy_radius": "定位精度（公里）", "is_bogon": "是否保留段", "is_mobile": "是否移动网络", "is_satellite": "是否卫星网络", "is_crawler": "是否爬虫", "is_datacenter": "是否数据中心", "is_tor": "是否 Tor 出口", "is_proxy": "是否代理", "is_vpn": "是否 VPN", "is_abuser": "是否滥用源", "is_anycast": "是否任播", "fraud_score": "欺诈评分", "risk": "风险评分", "url": "源链接", "version": "IP 版本", "ip_version": "IP 版本", "elapsed_ms": "查询耗时（毫秒）", "company": "公司", "location": "位置", "abuse": "滥用举报", "datacenter": "数据中心信息", "vpn": "VPN", "proxy": "代理", "hosting": "机房托管", "mobile": "移动网络", "address": "地址", "email": "邮箱", "phone": "电话", "provider": "服务商", "organisation": "组织", "isocode": "国家代码", "countryCode": "国家代码", "regionName": "地区/省份", "regioncode": "地区代码", "continentcode": "大洲代码", "postcode": "邮编", "range": "网段范围", "currency": "货币", "code": "代码", "symbol": "符号", "devices": "关联设备数", "subnet": "同网段", "operator": "VPN 运营方", "anonymity": "匿名度", "popularity": "知名度", "protocols": "协议", "message": "说明", "privacy": "隐私标记", "is_anonymous": "是否匿名", "is_hosting": "是否机房托管", "is_icloud_relay": "是否 iCloud 私有中继", "is_eu": "是否欧盟", "netname": "网络名", "postal_code": "邮编", "zipcode": "邮编", "subdivision": "行政区", "risk_score": "风险评分"}, "NET_TYPE_ZH": {"residential": "住宅宽带", "wireless": "移动网络", "business": "企业网络", "hosting": "机房托管", "isp": "ISP 宽带", "education": "教育网", "government": "政府网络", "banking": "金融机构", "vpn": "VPN", "tor": "Tor", "socks": "SOCKS 代理", "socks4": "SOCKS4 代理", "socks5": "SOCKS5 代理", "http": "HTTP 代理", "https": "HTTPS 代理", "compromised server": "被入侵服务器", "inference engine": "推断为代理", "openvpn": "OpenVPN", "whitelisted": "白名单"}, "COUNTRY_ZH": {"US": "美国", "CN": "中国", "HK": "中国香港", "TW": "中国台湾", "MO": "中国澳门", "JP": "日本", "KR": "韩国", "SG": "新加坡", "MY": "马来西亚", "TH": "泰国", "VN": "越南", "PH": "菲律宾", "ID": "印度尼西亚", "IN": "印度", "PK": "巴基斯坦", "AE": "阿联酋", "SA": "沙特", "IL": "以色列", "TR": "土耳其", "DE": "德国", "GB": "英国", "UK": "英国", "FR": "法国", "IT": "意大利", "ES": "西班牙", "NL": "荷兰", "BE": "比利时", "CH": "瑞士", "AT": "奥地利", "SE": "瑞典", "NO": "挪威", "FI": "芬兰", "DK": "丹麦", "IE": "爱尔兰", "PT": "葡萄牙", "PL": "波兰", "UA": "乌克兰", "RU": "俄罗斯", "CZ": "捷克", "HU": "匈牙利", "RO": "罗马尼亚", "CA": "加拿大", "MX": "墨西哥", "BR": "巴西", "AR": "阿根廷", "CL": "智利", "CO": "哥伦比亚", "AU": "澳大利亚", "NZ": "新西兰", "ZA": "南非", "EG": "埃及", "NG": "尼日利亚", "KE": "肯尼亚"}, "RISK_LEVEL_ZH": {"very high risk": "极高风险", "high risk": "高风险", "medium risk": "中风险", "low risk": "低风险", "very low risk": "极低风险"}, "USAGE_TYPE_ZH": {"ISP": "ISP 互联网服务商", "ISP/MOB": "ISP / 移动网络", "MOB": "移动网络", "DCH": "数据中心 / 主机商", "COM": "商业 / 公司", "EDU": "教育机构", "GOV": "政府机构", "MIL": "军事", "LIB": "图书馆", "ORG": "组织机构", "RSV": "保留地址", "BNK": "银行 / 金融", "ASP": "应用服务商", "CDN": "内容分发网络", "FIN": "金融", "GEN": "通用", "SES": "搜索引擎"}, "CONTINENT_ZH": {"AS": "亚洲", "EU": "欧洲", "NA": "北美洲", "SA": "南美洲", "AF": "非洲", "OC": "大洋洲", "AN": "南极洲"}, "ANTIBOT_SITES": [["ping0.cc", "https://ping0.cc/ip/{ip}", "国内常用 · IP 纯净度评分"], ["IPLark", "https://iplark.com/check", "一键多源检测"], ["IP 检测", "https://www.ipjiance.com", "国内综合查询"], ["Whoer", "https://whoer.net/zh", "匿名度评估"], ["Scamalytics", "https://scamalytics.com/ip/{ip}", "欺诈评分官网"], ["AbuseIPDB", "https://www.abuseipdb.com/check/{ip}", "全球滥用举报库"], ["iprisk.top", "https://iprisk.top", "聚合检测（一次多源）"], ["IP2Location 网页版", "https://www.ip2location.com/{ip}", "详细地理 / 服务商 / 用途"]], "RISK_FIELDS": ["hosting", "is_abuser", "is_anonymous", "is_bogon", "is_crawler", "is_datacenter", "is_hosting", "is_proxy", "is_tor", "is_vpn", "proxy", "vpn"], "DIMENSIONS": [["vpn", "VPN 节点", "risk"], ["proxy", "代理 IP", "critical"], ["anon", "匿名标记", "risk"], ["datacenter", "数据中心", "risk"], ["tor", "Tor 出口", "critical"], ["abuser", "滥用源", "critical"], ["crawler", "爬虫 Bot", "risk"], ["mobile", "移动网络", "info"]], "LINES": [{"id": "ai", "name": "Claude", "title": "Claude", "group": "🤖 AI 专用", "expect": "", "speed": null, "echo": [["Claude", "https://claude.ai/cdn-cgi/trace", "trace"]]}, {"id": "video", "name": "YouTube / Telegram", "title": "YouTube / Telegram", "group": "📺 影音高速", "expect": "", "speed": {"trace": "https://speed.cloudflare.com/cdn-cgi/trace", "ping": "https://speed.cloudflare.com/__down?bytes=0", "down": "https://speed.cloudflare.com/__down?bytes=25000000"}, "echo": [["ipv4.icanhazip.com", "https://ipv4.icanhazip.com/", "plain"], ["4.icanhazip.com", "https://4.icanhazip.com/", "plain"], ["get.geojs.io", "https://get.geojs.io/v1/ip/geo.json", "json-ip"]]}, {"id": "tiktok", "name": "TikTok", "title": "TikTok", "group": "🎵 TikTok", "expect": "JP", "speed": {"trace": "https://gcore.jsdelivr.net/cdn-cgi/trace", "ping": "https://gcore.jsdelivr.net/cdn-cgi/trace", "down": "https://gcore.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/sintel.mp4"}, "echo": [["ipv4.wtfismyip.com", "https://ipv4.wtfismyip.com/text", "plain"], ["ipv4.myip.wtf", "https://ipv4.myip.wtf/text", "plain"], ["ident.me", "https://ident.me/", "plain"]]}, {"id": "other", "name": "其他外网", "title": "Google、普通网页", "group": "🌍 国外网站", "expect": "", "speed": {"trace": "https://testingcf.jsdelivr.net/cdn-cgi/trace", "ping": "https://testingcf.jsdelivr.net/cdn-cgi/trace", "down": "https://testingcf.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/sintel.mp4"}, "echo": [["4.ident.me", "https://4.ident.me/", "plain"], ["v4.ident.me", "https://v4.ident.me/", "plain"], ["checkip.amazonaws.com", "https://checkip.amazonaws.com/", "plain"], ["icanhazip.com", "https://icanhazip.com/", "plain"]]}], "SPEED": {"seconds": 3, "max_bytes": 7000000, "streams": 2, "pings": 4, "fast_mbps": 25, "ok_mbps": 10, "min_mbps": 5, "fast_ms": 150, "ok_ms": 300}, "CLEAN_MAX_SCORE": 10, "AI_DOWN": {"title": "Claude 线路不通", "text": "家宽线路全部不可用时，配置按设计直接断开，不会改走别的出口；这时打开 Claude 也会连不上，等家宽恢复即可"}, "CHATGPT_LINE": {"id": "chatgpt", "name": "ChatGPT", "group": "💬 ChatGPT", "expect": "", "echo": [["ChatGPT", "https://chatgpt.com/cdn-cgi/trace", "trace"]]}, "GPT_BLOCKED": {"CN": "中国大陆", "HK": "中国香港", "MO": "中国澳门"}, "GPT_TEXT": {"ok": "出口不在中国大陆、香港或澳门，可以使用（机房也可以）", "bad": "出口在{place}：OpenAI 不对中国大陆、香港和澳门提供服务，ChatGPT 用不了", "unknown": "数据源没有给出出口所在国家 / 地区，无法判断", "down": "没有取到 ChatGPT 的出口（💬 ChatGPT 的家宽和机房节点都不可用，或网络不通）"}};
 
 const KEY_ZH = Object.assign({}, T.KEY_ZH, {
   // freeipapi 的驼峰字段名
@@ -414,6 +385,8 @@ const LINES = T.LINES;
 const AI_DOWN = T.AI_DOWN;
 // ChatGPT 出口判定的文案与「不合格地区」，和桌面版 GPT_BLOCKED / GPT_TEXT 同一份
 const CHATGPT_LINE = T.CHATGPT_LINE, GPT_BLOCKED = T.GPT_BLOCKED, GPT_TEXT = T.GPT_TEXT;
+// 测速参数与评级阈值、「绝对干净」的综合分上限，和桌面版 SPEED / CLEAN_MAX_SCORE 同一份
+const SPEED = T.SPEED, CLEAN_MAX = T.CLEAN_MAX_SCORE;
 const RISK_FIELDS = new Set([...T.RISK_FIELDS, "isProxy", "listed"]);
 const KEY_ONLY_DIMS = new Set(["crawler"]);
 
@@ -499,7 +472,8 @@ const PARSE = {
 // 且允许跨域读取；同一组的域名在分流规则里走同一条线路（cloudflare.com → 🌍；openai.com、chatgpt.com → 💬 ChatGPT；
 // anthropic.com、claude.ai → 🤖 AI 专用），换域名不会换线路。
 const TRACE_POOLS = {
-  default: ["www.cloudflare.com", "speed.cloudflare.com", "dash.cloudflare.com", "developers.cloudflare.com",
+  // speed.cloudflare.com 10-26 起是视频线路的测速域名（走 📺），不能放在这里
+  default: ["www.cloudflare.com", "dash.cloudflare.com", "developers.cloudflare.com",
             "radar.cloudflare.com", "workers.cloudflare.com", "pages.cloudflare.com", "api.cloudflare.com",
             "support.cloudflare.com", "community.cloudflare.com", "one.dash.cloudflare.com", "cloudflare.com"],
   ChatGPT: ["chatgpt.com", "ab.chatgpt.com", "sora.chatgpt.com", "chat.openai.com", "openai.com",
@@ -547,6 +521,72 @@ const traceFresh = hosts => echoFresh(tracePool(hosts));
 const AI_POOLS = { Claude: tracePool(TRACE_POOLS.Claude), ChatGPT: tracePool(TRACE_POOLS.ChatGPT) };
 const LINE_POOLS = Object.fromEntries(LINES.slice(1).map(l =>
   [l.id, l.id === "other" ? l.echo.concat(tracePool(TRACE_POOLS.default)) : l.echo]));
+
+// ───────── 测速（10-26）─────────
+// 视频、TikTok、其他外网三条线路各有一个专用测速域名（线路表的 speed，unified.yaml 的「2c」段把它们路由到对应策略组），
+// 都在 Cloudflare 上、允许跨域读取。先取测速域名 /cdn-cgi/trace 看到的出口（顺便建好连接），
+// 再在这条连接上发几个小请求取中位数当延迟，最后并发下载 SPEED.seconds 秒或 SPEED.max_bytes 字节算带宽。
+// 三条线路依次测、不同时测，免得互相抢带宽；出口和这条线路回显到的不一样时，报告里提示（配置没更新或沿用了旧连接）。
+const median = xs => {
+  const s = [...xs].sort((a, b) => a - b), m = s.length >> 1;
+  return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : null;
+};
+
+/** 下载测带宽：streams 路并发重复下载 url，从第一块数据到达时起计时（这一块不计入），
+ *  到时间或字节数上限就中止。返回 {mbps, bytes}；数据太少算不出时抛错。 */
+async function download(url) {
+  const ac = new AbortController();
+  const guard = setTimeout(() => ac.abort(), SPEED.seconds * 1000 + TIMEOUT);
+  let bytes = 0, t0 = null, t1 = null;
+  const stream = async () => {
+    while (!ac.signal.aborted) {
+      const r = await fetch(url, { cache: "no-store", credentials: "omit", signal: ac.signal });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.body || !r.body.getReader) throw new Error("浏览器不支持流式读取");
+      const reader = r.body.getReader();
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const now = performance.now();
+          if (t0 === null) { t0 = now; continue; }
+          bytes += value.byteLength;
+          t1 = now;
+          if (bytes >= SPEED.max_bytes || now - t0 >= SPEED.seconds * 1000) { ac.abort(); return; }
+        }
+      } finally {
+        reader.cancel().catch(() => { /* 已经读完或已中止 */ }); // 不再读的那一路也要停下，别在后台继续下载
+      }
+    }
+  };
+  const rs = await Promise.allSettled(Array.from({ length: SPEED.streams }, stream));
+  clearTimeout(guard);
+  if (t0 === null || t1 === null || t1 - t0 < 100 || bytes < 100000) {
+    const err = rs.map(r => r.reason).find(e => e && e.name !== "AbortError");
+    if (err && err instanceof TypeError) throw new Error("连接失败");
+    throw err || new Error(`超过 ${(SPEED.seconds * 1000 + TIMEOUT) / 1000} 秒数据还太少，算不出带宽`);
+  }
+  return { mbps: bytes * 8 / ((t1 - t0) / 1000) / 1e6, bytes };
+}
+
+/** 一条线路的测速：{host, ip（测速连接的出口）, ms, mbps, bytes, error}。 */
+async function speedTest(sp) {
+  const out = { host: hostOf(sp.trace), ip: null, ms: null, mbps: null, bytes: 0, error: null };
+  try {
+    out.ip = parseTrace(await fetchText(sp.trace));
+  } catch (e) {
+    out.error = e.message;
+    return out;
+  }
+  const samples = [];
+  for (let i = 0; i < SPEED.pings; i++) {
+    const t = performance.now();
+    try { await fetchText(sp.ping); samples.push(performance.now() - t); } catch (e) { /* 少一个样本 */ }
+  }
+  out.ms = median(samples);
+  try { Object.assign(out, await download(sp.down)); } catch (e) { out.error = e.message; }
+  return out;
+}
 
 // ───────── 数据源 ─────────
 // proxycheck / ip2location / ip-api 不允许网页跨域读取（ip-api 免费版还只有 http），手机网页版用不了；
@@ -641,6 +681,20 @@ async function runAll(log, force) {
     }, e => { lines[l.id].error = e.message; log(`× ${l.name} 线路出口检测失败`, "bad"); return null; });
   });
   const gptJob = ai.ChatGPT.catch(() => null);
+  // 测速：等各线路取完出口再开始（不和取出口抢带宽），三条线路依次测
+  const speed = {};
+  const speedJob = (async () => {
+    await Promise.all(lineJobs);
+    for (const l of LINES) {
+      if (!l.speed) continue;
+      speed[l.id] = { host: hostOf(l.speed.trace), ip: null, ms: null, mbps: null, bytes: 0, error: null, pending: true };
+      const r = await speedTest(l.speed);
+      speed[l.id] = r;
+      const g = speedGrade(r.ms, r.mbps);
+      log(`${g.state === "unknown" ? "×" : "✓"} ${l.title} 测速：延迟 ${fmtMs(r.ms)} · 带宽 ${fmtMbps(r.mbps)}`
+        + (r.error ? `（${r.error}）` : ""), g.state === "unknown" ? "bad" : "ok");
+    }
+  })();
 
   // ① 只等 Claude：Claude 失败就是 ① 不通（ChatGPT 走 💬 ChatGPT，不能顶替）
   const claude = await ai.Claude.catch(() => null);
@@ -670,7 +724,7 @@ async function runAll(log, force) {
       v => { extra[rip][k] = v; }, e => { extra[rip][k] = e; })));
   };
   const extraJobs = [...lineJobs, gptJob].map(p => p.then(extraFor));
-  await Promise.race([Promise.allSettled([...jobs, ...extraJobs]), sleep(left())]);
+  await Promise.race([Promise.allSettled([...jobs, ...extraJobs, speedJob]), sleep(left())]);
 
   // 到总时限还没返回的一律记为超时，不再等
   const late = () => new Error(`超过 ${RUN_DEADLINE / 1000} 秒未返回`);
@@ -678,12 +732,19 @@ async function runAll(log, force) {
   for (const name of Object.keys(AI_POOLS)) if (!(name in routes)) routes[name] = late();
   for (const l of LINES.slice(1)) if (!lines[l.id].ip && !lines[l.id].error) lines[l.id].error = late().message;
   for (const rip of Object.keys(extra)) for (const k of voteSources()) if (!(k in extra[rip])) extra[rip][k] = late();
+  for (const l of LINES) {
+    if (!l.speed) continue;
+    const sp = speed[l.id];
+    if (!sp) speed[l.id] = { host: hostOf(l.speed.trace), ip: null, ms: null, mbps: null, bytes: 0, error: "没来得及测" };
+    else if (sp.pending) speed[l.id] = { ...sp, pending: false, error: late().message };
+  }
   const seen = name => (typeof routes[name] === "string" ? routes[name] : null);
   lines.ai = ae.down ? { ip: null, frm: null, host: "", down: true, error: ae.title, claude: null }
     : { ip, frm, host: hosts.Claude || frm, down: false, claude: ip };
   lines.chatgpt = seen("ChatGPT") ? { ip: seen("ChatGPT"), host: hosts.ChatGPT || "", error: null }
     : { ip: null, host: "", error: routes.ChatGPT instanceof Error ? routes.ChatGPT.message : "未返回" };
-  return { ip, results, routes, extra, lines, stale: [...stale] };
+  // 拷一份：总时限过后还没测完的线路，后台回来的结果不再改这次的报告
+  return { ip, results, routes, extra, lines, stale: [...stale], speed: JSON.parse(JSON.stringify(speed)) };
 }
 
 // ───────── 翻译 ─────────
@@ -984,6 +1045,96 @@ function chatgptCheck(ip, country, datacenter, claudeIp) {
   return out;
 }
 
+// ───────── 「绝对干净」与测速评级（10-26，和桌面版 ai_clean / speed_grade 对拍，改这里要一起改）─────────
+const CLEAN_PROXY_DIMS = ["vpn", "proxy", "anon", "tor"];
+const CLEAN_FLAG_DIMS = ["abuser", "crawler"];
+const CLEAN_TITLE = { clean: "绝对干净", doubt: "有疑点", dirty: "不干净", unknown: "无法确认" };
+const SPEED_LABEL = { fast: "快", ok: "一般", slow: "慢", unknown: "未测出" };
+/** 有限的非负数原样返回，其他一律 null。 */
+const num = x => (typeof x === "number" && isFinite(x) && x >= 0 ? x : null);
+
+/** AI 出口（Claude）「绝对干净」的四项检查（用户 10-26：「AI 的出口要绝对干净」）：
+ *  ① 住宅宽带：「数据中心」所有表态的数据源都说否，且至少两个源表态；② 不是代理 / VPN / Tor：这四项所有表态都是否，合计至少两票；
+ *  ③ 风险分低、没有滥用记录：综合分 ≤ CLEAN_MAX，且滥用源、爬虫没有源说是；④ 地区合格：不在中国大陆 / 香港 / 澳门。
+ *  每项 ok / warn / bad / unk；有 bad = dirty，否则有 warn = doubt，否则有 unk = unknown，全 ok = clean。
+ *  返回 {state, title, text, checks: [{key, label, state, text}]}。 */
+function aiClean(ev, compScore, country) {
+  const zh = Object.fromEntries(DIMENSIONS.map(([k, z]) => [k, z]));
+  const checks = [];
+  const add = (key, label, state, text) => checks.push({ key, label, state, text });
+
+  let label = "住宅宽带";
+  const [dy, dn] = tally(ev.datacenter || []);
+  if (dn === 0) add("residential", label, "unk", "没有数据源给出判断");
+  else if (dy === 0) {
+    if (dn >= 2) add("residential", label, "ok", `${dn} 个数据源都说不是机房`);
+    else add("residential", label, "unk", "只有 1 个数据源表态，不足以确认");
+  } else add("residential", label, dy * 2 > dn ? "bad" : "warn", `${dy}/${dn} 个数据源说是机房`);
+
+  label = "不是代理 / VPN";
+  let pn = 0;
+  const bad = [], warn = [];
+  for (const k of CLEAN_PROXY_DIMS) {
+    const [y, n] = tally(ev[k] || []);
+    pn += n;
+    if (y && y * 2 > n) bad.push(`${zh[k]}（${y}/${n} 源）`);
+    else if (y) warn.push(`${zh[k]}（${y}/${n} 源）`);
+  }
+  if (bad.length) add("proxy", label, "bad", "说是：" + bad.concat(warn).join("、"));
+  else if (warn.length) add("proxy", label, "warn", "少数数据源说是：" + warn.join("、"));
+  else if (pn === 0) add("proxy", label, "unk", "没有数据源给出判断");
+  else if (pn < 2) add("proxy", label, "unk", "只有 1 项判断，不足以确认");
+  else add("proxy", label, "ok", `${pn} 项判断全部说不是`);
+
+  label = "风险分低";
+  const flags = [];
+  for (const k of CLEAN_FLAG_DIMS) {
+    const [y, n] = tally(ev[k] || []);
+    if (y) flags.push(`${zh[k]}（${y}/${n} 源说是）`);
+  }
+  const s = num(compScore);
+  if (s === null) add("score", label, "unk", "风控数据不足，没有综合分");
+  else {
+    let st = s <= CLEAN_MAX ? "ok" : s <= BANDS["较为干净"][1] ? "warn" : "bad";
+    if (flags.length && st === "ok") st = "warn";
+    let text = s <= CLEAN_MAX ? `综合分 ${s}（≤${CLEAN_MAX} 算低）` : `综合分 ${s}，高于 ${CLEAN_MAX}`;
+    if (flags.length) text += "；" + flags.join("、");
+    add("score", label, st, text);
+  }
+
+  label = "地区合格";
+  const cc = typeof country === "string" && /^[A-Za-z]{2}$/.test(country) ? country.toUpperCase() : null;
+  if (!cc) add("region", label, "unk", "数据源没有给出国家 / 地区");
+  else if (cc in GPT_BLOCKED) add("region", label, "bad", `出口在${GPT_BLOCKED[cc]}：Claude 和 ChatGPT 都不对中国大陆、香港和澳门提供服务`);
+  else add("region", label, "ok", COUNTRY_ZH[cc] || cc);
+
+  const has = st => checks.some(c => c.state === st);
+  const names = st => checks.filter(c => c.state === st).map(c => c.label).join("；");
+  let state, text;
+  if (has("bad")) [state, text] = ["dirty", "没通过：" + names("bad") + (has("warn") ? "。有疑点：" + names("warn") : "")];
+  else if (has("warn")) [state, text] = ["doubt", "有疑点：" + names("warn") + (has("unk") ? "。无法确认：" + names("unk") : "")];
+  else if (has("unk")) [state, text] = ["unknown", "数据不足，无法确认：" + names("unk")];
+  else [state, text] = ["clean", "四项全部通过"];
+  return { state, title: CLEAN_TITLE[state], text, checks };
+}
+
+/** 测速评级（用户 10-26：视频媒体要延迟最低、带宽最大）。ms 为延迟（毫秒），mbps 为带宽，没测出为 null。
+ *  带宽和延迟各分三档，取较差的一档；只测出一项就只看那一项，都没测出为 unknown。返回 {state: fast/ok/slow/unknown, label, text}。 */
+function speedGrade(ms, mbps) {
+  ms = num(ms);
+  mbps = num(mbps);
+  if (ms === null && mbps === null) return { state: "unknown", label: SPEED_LABEL.unknown, text: "测速失败" };
+  const bw = mbps === null ? null : mbps >= SPEED.fast_mbps ? 2 : mbps >= SPEED.ok_mbps ? 1 : 0;
+  const lat = ms === null ? null : ms <= SPEED.fast_ms ? 2 : ms <= SPEED.ok_ms ? 1 : 0;
+  const state = ["slow", "ok", "fast"][Math.min(...[bw, lat].filter(x => x !== null))];
+  const parts = [mbps === null ? "带宽没测出" : mbps >= SPEED.fast_mbps ? "够看 4K" : mbps >= SPEED.ok_mbps ? "够看 1080p"
+    : mbps >= SPEED.min_mbps ? "够看 720p" : "看视频会卡"];
+  if (lat === 0) parts.push("延迟偏高");
+  else if (lat === 1) parts.push("延迟一般");
+  else if (ms === null) parts.push("延迟没测出");
+  return { state, label: SPEED_LABEL[state], text: parts.join("，") };
+}
+
 // ───────── 历史对比 ─────────
 function loadHistory() {
   const h = store.get("history", []);
@@ -1035,7 +1186,6 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const pad = n => String(n).padStart(2, "0");
 const fmtTime = (d, sec) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
   + (sec ? `:${pad(d.getSeconds())}` : "");
-const MARK = { "较为干净": "✓", "中等风险": "⚠", "高风险": "✗" };
 
 /** 首屏只在出口 IP 或结论变了时显示历史对比，其余情况（第一次记录、数据源不同、都没变）只放进「详细数据」。 */
 const diagWorthShowing = diag => !!diag && !diag.skipped && (diag.changed || !diag.same_ip);
@@ -1116,78 +1266,60 @@ function countryCode(src) {
 }
 
 const GPT_BADGE = { ok: ["✓", "可用", "v-ok"], bad: ["✗", "不可用", "v-bad"], unknown: ["?", "无法判断", "v-unk"], down: ["×", "连不上", "v-bad"] };
+// 「绝对干净」各状态的符号、颜色类和背景色调；检查项的符号
+const CLEAN_UI = { clean: ["✓", "v-ok", "ok"], doubt: ["!", "v-warn", "warn"], dirty: ["✗", "v-bad", "bad"], unknown: ["?", "v-unk", ""] };
+const CHK_MARK = { ok: "✓", warn: "!", bad: "✗", unk: "?" };
+const fmtMs = ms => (num(ms) === null ? "—" : `${Math.round(ms)} ms`);
+const fmtMbps = x => (num(x) === null ? "—" : `${x < 10 ? Math.round(x * 10) / 10 : Math.round(x)} Mbps`);
 
-/** 紧跟主卡片的 ChatGPT 小卡片：出口 IP、国家 / 地区、家宽或机房，按 chatgptCheck 标绿 / 红；和 Claude 出口不同只做灰色说明。 */
-function renderGptCard(gpt, src, host) {
+const staleNote = stale => (stale.length
+  ? `<div class="relay">${esc(stale.join("、"))}这次没能换新连接（本页能用的新域名用完了）。如果你刚切换过节点，结果可能还是切换前的；把本页从后台划掉、重新打开再测。</div>`
+  : "");
+
+/** AI 块里的 ChatGPT 一行：出口在不在中国大陆 / 香港 / 澳门（机房也行，按 chatgptCheck），和 Claude 同不同出口只做灰色说明。 */
+function renderGptRow(gpt, src) {
   if (!gpt) return "";
   const [mark, label, cls] = GPT_BADGE[gpt.state];
   let loc = src ? place(src) : "—";
   if (loc === "—") loc = gpt.place || "";
-  const det = [loc, gpt.kind || ""].filter(Boolean).join(" · ") + (gpt.ip && host ? ` · 经 ${host}` : "");
-  return `<section class="ln-card gpt-card gpt-${gpt.state}"><div class="ln-head"><div class="ln-name">ChatGPT 出口</div>`
-    + `<div class="ln-sub">${esc(CHATGPT_LINE.group)} · 出口不在中国大陆 / 香港 / 澳门即可，机房也行</div></div>`
-    + `<div class="ln-ip">${esc(gpt.ip || "—")}</div>${det ? `<div class="ln-det">${esc(det)}</div>` : ""}`
-    + `<div class="ln-verdict ${cls}"><b>${mark} ${label}</b><div class="ln-sentence">${esc(gpt.text)}</div></div>`
-    + (gpt.ip && gpt.note ? `<div class="ln-note n-info">${esc(gpt.note)}</div>` : "")
-    + "</section>";
+  const det = [loc, gpt.ip ? gpt.kind : ""].filter(Boolean).join(" · ");
+  const head = `<div class="gpt-row gpt-${gpt.state}"><span class="gpt-name">ChatGPT</span><span class="gpt-state ${cls}">${mark} ${label}</span>`;
+  // 和 Claude 同出口时 IP、地区就是上面那一行，不再重复
+  if (gpt.ip && gpt.same_as_claude) return head + `<span class="gpt-det">${esc(gpt.state === "ok" ? gpt.note : gpt.text)}</span></div>`;
+  return head + (gpt.ip ? `<span class="gpt-det"><span class="mono">${esc(gpt.ip)}</span>${det ? ` · ${esc(det)}` : ""}</span>` : "")
+    + `<div class="gpt-note">${esc(gpt.state === "ok" ? gpt.note || gpt.text : gpt.text)}</div></div>`;
 }
 
-/** ① 不通时的主卡片：不显示 IP 和分数，只说明线路按设计断开（AI_DOWN），不会改走别的出口。 */
-function renderAiDownHero(when, runNo, stale) {
-  const staleNote = stale.length
-    ? `<div class="relay">${esc(stale.join("、"))}这次没能换新连接（本页能用的新域名用完了）。如果你刚切换过节点，结果可能还是切换前的；把本页从后台划掉、重新打开再测。</div>`
-    : "";
-  return `<section class="hero hero-down">
-  <div class="hero-top">
-    <div class="hero-ip-block"><div class="hero-label">Claude 出口</div><div class="hero-ip hero-ip-down">${esc(AI_DOWN.title)}</div></div>
-  </div>
-  <div class="hero-verdict v-warn">
-    <span class="v-mark">⚠</span><span class="v-level">线路不通</span>
-    <span class="v-sep">·</span><span class="v-sentence">${esc(AI_DOWN.text)}</span>
-  </div>
-  <div class="hero-lines"><div class="hl-row"><span class="hl-bad">Claude × 连不上</span></div></div>${staleNote}
-  <div class="hero-meta">
-    <div class="hm-item"><div class="hm-k">检测时间</div><div class="hm-v">${esc(when)}<div class="rt-sub">本页第 ${runNo} 次检测</div></div></div>
-  </div>
+const AI_HEAD = '<div class="blk-head"><div class="blk-title">AI 出口</div><div class="blk-hint">Claude 只走家宽，要绝对干净</div></div>';
+
+/** ① 不通时的 AI 块：不显示 IP 和检查项，只说明线路按设计断开（AI_DOWN），不会改走别的出口。 */
+function renderAiDownBlock(gptRow, stale) {
+  return `<section class="blk ai-blk">${AI_HEAD}
+  <div class="ai-status v-warn"><span class="v-mark">!</span><div><div class="v-level">${esc(AI_DOWN.title)}</div>`
+    + `<div class="v-sentence">Claude × 连不上</div></div></div>
+  <div class="ai-down-text">${esc(AI_DOWN.text)}</div>${gptRow}${staleNote(stale)}
 </section>`;
 }
 
-function renderHero(ip, a, when, runNo, stale) {
-  const { src, verdict: v, comp, conf, agree } = a;
+/** AI 块：「绝对干净」大结论 + 四项检查 + 出口 IP 一行 + ChatGPT 一行，评分依据折叠在最后。 */
+function renderAiBlock(ip, a, clean, gptRow, stale) {
+  const { src, verdict: v, conf, agree } = a;
+  const [mark, cls] = CLEAN_UI[clean.state];
   const [asn, org] = asnInfo(src);
-  const asnStr = asn !== "—" ? `${asn} · ${org}` : org;
+  const exitBits = [place(src), asn !== "—" ? `${asn} ${org}` : org, netTypeZh(src)].filter(x => x && x !== "—");
   const relay = yn(g(src.iplocate, "privacy", "is_icloud_relay"))
     ? '<div class="relay">这是 iCloud 专用代理（Private Relay）的 IP，不是你代理节点的出口。想测节点，请在「设置 › 顶部你的名字 › iCloud › 专用代理」里暂时关掉，或换个浏览器打开本页。</div>'
     : "";
-  const staleNote = stale.length
-    ? `<div class="relay">${esc(stale.join("、"))}这次没能换新连接（本页能用的新域名用完了）。如果你刚切换过节点，结果可能还是切换前的；把本页从后台划掉、重新打开再测。</div>`
-    : "";
-  // 圆环颜色跟结论走（综合分落在结论等级的区间里，两者不会打架）
-  const dots = [1, 2, 3].map(i => `<span${i > conf.dots ? ' class="off"' : ""}>●</span>`).join("");
-  const agreeTxt = agree.total && v.level in BANDS ? `${agree.agree}/${agree.total} 个数据源一致` : "";
-  return `<section class="hero">
-  <div class="hero-top">
-    <div class="hero-ip-block"><div class="hero-label">Claude 出口</div><div class="hero-ip">${esc(ip)}</div></div>
-    <div class="hero-score-block">
-      <div class="ring ${v.color}" style="--p:${comp.score ?? 0}"><div class="ring-in">
-        <div class="hero-score ${v.color}">${comp.score ?? "—"}</div><div class="ring-cap">综合分</div>
-      </div></div>
-    </div>
-  </div>
-  <div class="hero-verdict ${v.color}">
-    <span class="v-mark">${MARK[v.level] || "?"}</span><span class="v-level">${esc(v.level)}</span>
-    <span class="v-sep">·</span><span class="v-sentence">${esc(v.sentence)}</span>
-  </div>
-  <div class="conf"><span class="conf-badge"><span class="conf-dots" aria-hidden="true">${dots}</span>可信度${esc(conf.level)}</span>`
-    + `<span>${esc(agreeTxt)}</span></div>
-  ${relay}${staleNote}
-  <div class="hero-meta">
-    <div class="hm-item"><div class="hm-k">位置</div><div class="hm-v">${esc(place(src))}</div></div>
-    <div class="hm-item"><div class="hm-k">服务商</div><div class="hm-v">${esc(asnStr)}</div></div>
-    <div class="hm-item"><div class="hm-k">网络类型</div><div class="hm-v">${esc(netTypeZh(src))}</div></div>
-    <div class="hm-item"><div class="hm-k">检测时间</div><div class="hm-v">${esc(when)}<div class="rt-sub">本页第 ${runNo} 次检测</div></div></div>
-  </div>
-  ${renderBreakdown(a)}
+  const why = `可信度${conf.level}` + (agree.total && v.level in BANDS ? ` · ${agree.agree}/${agree.total} 个源一致` : "");
+  const checks = clean.checks.map(c => `<li class="chk c-${c.state}"><span class="chk-mark">${CHK_MARK[c.state]}</span>`
+    + `<span class="chk-label">${esc(c.label)}</span><span class="chk-text">${esc(c.text)}</span></li>`).join("");
+  return `<section class="blk ai-blk">${AI_HEAD}
+  <div class="ai-status ${cls}"><span class="v-mark">${mark}</span><div><div class="v-level">${esc(clean.title)}</div>`
+    + `<div class="v-sentence">${esc(clean.text)}</div></div></div>
+  <ul class="chk-list">${checks}</ul>
+  <div class="ai-exit"><span class="mono">${esc(ip)}</span>${esc(exitBits.join(" · "))}</div>
+  ${gptRow}${relay}${staleNote(stale)}
+  ${renderBreakdown(a, why)}
 </section>`;
 }
 
@@ -1195,7 +1327,7 @@ const fmtPts = x => String(Math.round(x * 10) / 10);
 const dimLabels = sev => DIMENSIONS.filter(([, , s]) => s === sev).map(([, zh]) => zh).join(" / ");
 
 /** 主卡片里的「评分依据」：每个维度各源怎么判、各加几分，合计怎么落进结论区间，各源是否一致。 */
-function renderBreakdown(a) {
+function renderBreakdown(a, hint) {
   const { ev, comp, agree, conf, verdict: v, failed } = a;
   const ST = { unknown: ["未知", "t-unk"], no: ["否", "t-ok"], yes: ["是", "t-bad"], doubt: ["存疑", "t-warn"] };
   const row = (k, tag, cls, pts, zero, sub, extraCls) =>
@@ -1231,7 +1363,7 @@ function renderBreakdown(a) {
     + `<span class="sa-name">${esc(p.src)}</span><span class="sa-txt">${p.against.length ? `${esc(p.against.join("、"))}和多数意见不同` : "和多数意见一致"}</span></li>`)
     .concat(failed.map(s => `<li><span class="sa-mark sa-fail">×</span><span class="sa-name">${esc(s)}</span><span class="sa-txt">查询失败，没有参与</span></li>`));
 
-  return `<details class="why"><summary>评分依据<span class="sum-hint">每个数据源怎么判</span></summary><div class="why-body">
+  return `<details class="why"><summary>评分依据<span class="sum-hint">${esc(hint || "每个数据源怎么判")}</span></summary><div class="why-body">
     <div class="why-formula">综合分 0–100，越低越干净。每个风险项按认为「是」的数据源占比折算：${esc(dimLabels("critical"))} 满分 ${DIM_WEIGHT.critical}，`
     + `${esc(dimLabels("risk"))} 满分 ${DIM_WEIGHT.risk}；再加 ipquery 风险分 × ${IPQUERY_WEIGHT}。合计落进结论等级的区间：`
     + "较为干净 0–33 · 中等风险 34–66 · 高风险 67–100，所以分数颜色和结论一定一致。结论等级本身由多源投票决定，规则和桌面版相同。</div>"
@@ -1257,47 +1389,58 @@ function lineVerdicts(ip, main, lines, extra) {
   return { lines: out, byIp };
 }
 
-/** 「其他线路」：②③④ 三张毛玻璃卡片（IP、位置、结论、提示），同出口有问题时上方加横幅。手机上读不到节点名。 */
-function renderLines(main, lines, lv, ge) {
-  const detail = src => {
-    const [asn, org] = asnInfo(src);
-    return [place(src), `${asn} ${org}`.replace(/^[\s—]+|[\s—]+$/g, ""), netTypeZh(src)].filter(p => p && p !== "—").join(" · ");
-  };
-  const cards = [], worse = [];
-  for (const l of LINES.slice(1)) {
-    const info = ge.lines[l.id], meta = lines[l.id] || {}, v = lv[l.id];
-    const sub = (l.expect ? `预期${COUNTRY_ZH[l.expect] || l.expect} · ` : "") + l.group;
-    const notes = info.notes.map(t => `<div class="ln-note n-${info.level === "warn" ? "warn" : "info"}">${esc(t)}</div>`);
-    let body;
-    if (!v) {
-      body = '<div class="ln-ip">—</div><div class="ln-det">检测失败（回显服务不可达或超时）</div>'
-        + `<div class="ln-verdict v-unk"><b>? 未知</b><div class="ln-sentence">${esc(meta.error || "未能取得这条线路的出口 IP")}</div></div>`;
-    } else {
-      const vv = v.verdict;
-      const det = detail(v.src) + (meta.host ? ` · 经 ${meta.host}` : "");
-      body = `<div class="ln-ip">${esc(v.ip)}</div><div class="ln-det">${esc(det)}</div>`
-        + `<div class="ln-verdict ${vv.color}"><b>${MARK[vv.level] || "?"} ${esc(vv.level)}${v.score != null ? ` · ${v.score} 分` : ""}</b>`
-        + `<div class="ln-sentence">${esc(vv.sentence)}</div></div>`;
-      if (vv.level in LEVEL_RANK && main.verdict.level in LEVEL_RANK && LEVEL_RANK[vv.level] > LEVEL_RANK[main.verdict.level]) {
-        worse.push(`${l.name} ${vv.level}`);
-      }
-    }
-    cards.push(`<section class="ln-card"><div class="ln-head"><div class="ln-name">${esc(l.name)}</div><div class="ln-sub">${esc(sub)}</div></div>`
-      + body + notes.join("") + "</section>");
+/** 视频媒体 / 其他外网里的一行：线路名、地区、延迟、带宽、评级，下面是提示（同出口、地区不符、测速没走这条线路）。 */
+function renderSpeedRow(l, info, meta, v, sp) {
+  const gr = speedGrade(sp ? sp.ms : null, sp ? sp.mbps : null);
+  const cc = v ? countryCode(v.src) : null;
+  const kind = v && v.ev ? ({ yes: "机房", no: "家宽" }[dimState(v.ev.datacenter || [])] || "") : "";
+  const sub = [cc ? COUNTRY_ZH[cc] || cc : "", kind, l.group].filter(Boolean).join(" · ");
+  const notes = [];
+  if (!meta.ip) notes.push(["warn", `没取到这条线路的出口：${meta.error || "回显服务不可达"}`]);
+  for (const t of info.notes) notes.push([info.level === "warn" ? "warn" : "info", t]);
+  if (sp && sp.ip && meta.ip && sp.ip !== meta.ip) {
+    notes.push(["warn", "测速连接走的出口和这条线路不一样，测速结果不代表这条线路：手机上的代理配置可能还没更新"
+      + "（更新配置后关开一次连接），或沿用了切换节点前的旧连接（把本页从后台划掉重开）"]);
   }
-  const banner = ge.banner ? `<div class="ln-banner">⚠ ${esc(ge.banner)}</div>` : "";
-  const hint = worse.length ? "注意：" + worse.join("、") : "按分流规则分别测出口";
-  return [`${banner}<div class="ln-cards">${cards.join("")}</div>`, hint];
+  if (sp && sp.error) notes.push([gr.state === "unknown" ? "warn" : "info", `${gr.state === "unknown" ? "测速失败" : "部分测速失败"}：${sp.error}`]);
+  const val = (x, text) => (num(x) === null ? '<div class="sp-v none">—</div>'
+    : `<div class="sp-v">${esc(text.split(" ")[0])}<small>${esc(text.split(" ")[1])}</small></div>`);
+  return `<div class="sp-row"><div class="sp-name"><div class="sp-title">${esc(l.title)}</div><div class="sp-sub">${esc(sub)}</div></div>`
+    + `<div class="sp-lat">${val(sp && sp.ms, fmtMs(sp && sp.ms))}<div class="sp-k">延迟</div></div>`
+    + `<div class="sp-bw">${val(sp && sp.mbps, fmtMbps(sp && sp.mbps))}<div class="sp-k">带宽</div></div>`
+    + `<div class="sp-grade g-${gr.state}">${esc(gr.label)}<span>${esc(gr.text)}</span></div>`
+    + (notes.length ? `<div class="sp-notes">${notes.map(([c, t]) => `<div class="sp-note n-${c}">${esc(t)}</div>`).join("")}</div>` : "")
+    + "</div>";
 }
 
-/** 「详细数据」里的线路明细：每条线路用的回显域名、拿到的 IP 或失败原因。 */
-function renderLineTable(lines) {
+/** 视频媒体（YouTube / Telegram、TikTok）和其他外网两块；同出口有问题时视频块顶上加横幅。手机上读不到节点名。 */
+function renderMedia(lines, lv, ge, speed, stale) {
+  const row = id => renderSpeedRow(LINES.find(l => l.id === id), ge.lines[id], lines[id] || {}, lv[id], speed[id]);
+  const banner = ge.banner ? `<div class="ln-banner">⚠ ${esc(ge.banner)}</div>` : "";
+  return '<section class="blk media-blk"><div class="blk-head"><div class="blk-title">视频媒体</div>'
+    + `<div class="blk-hint">延迟越低、带宽越大越好</div></div>${banner}${staleNote(stale)}${row("video")}${row("tiktok")}</section>`
+    + '<section class="blk other-blk"><div class="blk-head"><div class="blk-title">其他外网</div>'
+    + `<div class="blk-hint">没单独分流的网站都走这里</div></div>${row("other")}</section>`;
+}
+
+const LV_CLS = { "v-ok": "lv-ok", "v-warn": "lv-warn", "v-bad": "lv-bad", "v-unk": "lv-unk" };
+
+/** 「详细数据」里的线路明细：每条线路的回显域名和出口、这个出口的干净度判定、测速域名和结果。 */
+function renderLineTable(lines, lv, speed) {
   const rows = [...LINES, CHATGPT_LINE].map(l => {
-    const m = lines[l.id] || {};
-    const via = l.id === "ai" && m.down ? "线路不通（Claude 连不上）"
-      : m.ip ? `经 ${m.host || "—"}` : `失败：${m.error || "—"}`;
-    return `<tr><td class="kv-k">${esc(l.name)}<div class="rt-sub">${esc(l.group)}</div></td>`
-      + `<td class="kv-v"><span class="mono">${esc(m.ip || "—")}</span><div class="rt-sub">${esc(via)}</div></td></tr>`;
+    const m = lines[l.id] || {}, sp = speed[l.id];
+    const v = m.ip ? lv.byIp[m.ip] || lv.lines[l.id] : null;
+    const via = l.id === "ai" && m.down ? "线路不通（Claude 连不上）" : m.ip ? `回显经 ${m.host || "—"}` : `失败：${m.error || "—"}`;
+    const where = v ? place(v.src) : "—";
+    const judge = v && v.verdict
+      ? `<div class="rt-sub"><span class="${LV_CLS[v.verdict.color] || "lv-unk"}">${esc(v.verdict.level)}${v.score != null ? ` · ${v.score} 分` : ""}</span>`
+        + ` · ${esc(v.verdict.sentence)}</div>` : "";
+    const spTxt = sp ? `测速经 ${sp.host}${sp.ip ? `（出口 ${sp.ip}）` : ""}：延迟 ${fmtMs(sp.ms)} · 带宽 ${fmtMbps(sp.mbps)}`
+      + (sp.error ? ` · ${sp.error}` : "") : "";
+    return `<tr><td class="kv-k">${esc(l.title || l.name)}<div class="rt-sub">${esc(l.group)}</div></td>`
+      + `<td class="kv-v"><span class="mono">${esc(m.ip || "—")}</span>`
+      + (where !== "—" ? `<div class="rt-sub">${esc(where)}</div>` : "") + judge
+      + `<div class="rt-sub">${esc(via)}</div>${spTxt ? `<div class="rt-sub">${esc(spTxt)}</div>` : ""}</td></tr>`;
   });
   return `<div class="src-card"><table class="kv-table">${rows.join("")}</table></div>`;
 }
@@ -1348,11 +1491,10 @@ function plain(obj) {
 }
 
 function buildReport(run, runNo) {
-  const { ip, results, routes, extra, lines, stale } = run;
+  const { ip, results, routes, extra, lines, stale, speed } = run;
   const now = new Date();
-  const down = !ip; // ① 线路不通：不显示 IP / 分数、不写 ① 的历史，②③④ 照常
+  const down = !ip; // ① 线路不通：不显示 IP / 检查项、不写 ① 的历史，其他线路照常
   const main = down ? null : assess(results);
-  document.body.dataset.tone = down ? "warn" : main.verdict.color.slice(2); // 背景色块跟着结论变色
   let diag = null;
   if (!down) {
     const asBool = { yes: true, no: false }; // 意见不一或无数据记为 null，不能记成「否」
@@ -1373,27 +1515,34 @@ function buildReport(run, runNo) {
   const countries = Object.fromEntries(Object.values(lv.byIp).map(v => [v.ip, countryCode(v.src)]));
   // ① 不通时 lv.lines.ai 为 null，同出口判定不把 ① 算进去
   const ge = groupExits(Object.fromEntries(LINES.map(l => [l.id, lv.lines[l.id] ? lv.lines[l.id].ip : null])), countries);
-  const [linesHtml, linesHint] = renderLines(main || { verdict: { level: "线路不通" } }, lines, lv.lines, ge);
   // ChatGPT：只判出口在不在中国大陆 / 香港 / 澳门，机房不扣分；不参与综合分、历史和同出口判定
   const gl = lines.chatgpt || null;
   const gv = gl && gl.ip ? lv.byIp[gl.ip] : null;
   const gDc = gv && gv.ev ? ({ yes: true, no: false }[dimState(gv.ev.datacenter || [])] ?? null) : null;
   const gpt = gl ? chatgptCheck(gl.ip, gv ? countryCode(gv.src) : null, gDc, ip) : null;
-  const gptCard = renderGptCard(gpt, gv ? gv.src : null, gl ? gl.host : "");
-  const raw = JSON.stringify({ "Claude 出口": plain(results), "ChatGPT 出口判定": gpt, 线路: plain(lines), 同出口判定: ge,
-    探针原始结果: plain(routes), 其他线路数据: plain(extra) }, null, 2);
-  const title = (t, hint) => `<div class="section-title">${t}${hint ? ` <span class="st-hint">${esc(hint)}</span>` : ""}</div>`;
-  const tail = '<div class="more-note" style="margin-top:10px">视频线路按分流规则测 📺 影音高速的回显地址（YouTube 自己的诊断页不允许网页读取）；手机网页读不到代理 App 里的节点名，只显示检测结果。</div>'
+  const gptRow = renderGptRow(gpt, gv ? gv.src : null);
+  // AI 出口「绝对干净」四项检查；背景色块跟着它变色
+  const clean = down ? null : aiClean(main.ev, main.comp.score, countryCode(main.src));
+  document.body.dataset.tone = down ? "warn" : CLEAN_UI[clean.state][2];
+
+  const raw = JSON.stringify({ "Claude 出口": plain(results), "绝对干净": clean, "ChatGPT 出口判定": gpt, 线路: plain(lines),
+    测速: speed, 同出口判定: ge, 探针原始结果: plain(routes), 其他线路数据: plain(extra) }, null, 2);
+  const meta = `<div class="run-meta">检测时间 ${esc(fmtTime(now, true))} · 本页第 ${runNo} 次检测</div>`;
+  const lineTable = '<div class="more-h">各线路的出口与测速<span class="st-hint">（回显域名、出口判定、测速域名）</span></div>'
+    + renderLineTable(lines, lv, speed);
+  const tail = '<div class="more-note" style="margin-top:10px">每条线路的测速域名由分流规则指到对应策略组，延迟是同一条连接上几次小请求的中位数，'
+    + `带宽是并发下载最多 ${SPEED.seconds} 秒或 ${Math.round(SPEED.max_bytes / 1e6)} MB 的平均速度。手机网页读不到代理 App 里的节点名，只显示检测结果。</div>`
     + `<details class="raw"><summary>原始 JSON</summary><pre>${esc(raw)}</pre></details>`
     + "</div></details>";
+  // 没能换新连接的线路：Claude / ChatGPT 的提示放在 AI 块，其他放在视频块
+  const isAi = n => n in AI_POOLS;
+  const media = renderMedia(lines, lv.lines, ge, speed, stale.filter(n => !isAi(n)));
 
   if (down) {
-    return renderAiDownHero(fmtTime(now, true), runNo, stale) + gptCard
-      + title("其他线路", linesHint) + linesHtml
-      + '<details class="more"><summary>详细数据<span class="sum-hint">各线路回显 · 原始 JSON</span></summary><div class="more-body">'
+    return renderAiDownBlock(gptRow, stale.filter(isAi)) + media + meta
+      + '<details class="more"><summary>详细数据<span class="sum-hint">各线路出口与测速 · 原始 JSON</span></summary><div class="more-body">'
       + `<div class="more-h">历史对比</div><div class="more-note">${esc(AI_DOWN.title)}，本次不记录、不做历史对比。</div>`
-      + '<div class="more-h">各线路的检测<span class="st-hint">（回显域名和拿到的 IP）</span></div>' + renderLineTable(lines)
-      + tail;
+      + lineTable + tail;
   }
 
   const cards = activeSources().map(s => renderSourceCard(s, ip, results[s.key])).join("");
@@ -1401,12 +1550,12 @@ function buildReport(run, runNo) {
     : '<div class="more-note">ipapi.is 没填 key 时只给归属信息、不参与判定，所以没有查询；在「设置」里填 key 后参与判定。</div>';
   const showDiag = diagWorthShowing(diag); // IP 或结论变了才上首屏
 
-  return renderHero(ip, main, fmtTime(now, true), runNo, stale) + gptCard
+  return renderAiBlock(ip, main, clean, gptRow, stale.filter(isAi))
     + (showDiag ? renderDiagnosis(diag, false) : "")
-    + title("其他线路", linesHint) + linesHtml
-    + '<details class="more"><summary>详细数据<span class="sum-hint">各线路回显 · 数据源原始返回 · 外部检测网站</span></summary><div class="more-body">'
+    + media + meta
+    + '<details class="more"><summary>详细数据<span class="sum-hint">历史对比 · 各线路出口与测速 · 数据源原始返回 · 外部检测网站</span></summary><div class="more-body">'
     + (showDiag ? "" : '<div class="more-h">历史对比</div>' + renderDiagnosis(diag, true))
-    + '<div class="more-h">各线路的检测<span class="st-hint">（回显域名和拿到的 IP）</span></div>' + renderLineTable(lines)
+    + lineTable
     + '<div class="more-h">数据源原始返回<span class="st-hint">（Claude 出口，字段名已翻译为中文）</span></div>' + keyNote + cards
     + '<div class="more-h">外部检测网站</div>' + renderExternal(ip)
     + tail;
@@ -1510,7 +1659,7 @@ $("clear-cache").addEventListener("click", () => { store.del("cache"); $("clear-
 
 // 测试入口（不影响页面）
 window.__ipcheck = { assess, computeVerdict, collectEvidence, diagnoseChange, dimState, place, asnInfo, netTypeZh,
-  compositeScore, agreement, confidence, groupExits, aiExit, chatgptCheck, countryCode };
+  compositeScore, agreement, confidence, groupExits, aiExit, chatgptCheck, countryCode, aiClean, speedGrade };
 
 refreshSettings();
 start(false);
